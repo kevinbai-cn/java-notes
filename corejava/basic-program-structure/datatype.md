@@ -5,6 +5,10 @@
 ## 布尔值
 ## 字符
 
+# 特殊
+
+## null
+
 # 复杂
 
 ## 数组
@@ -63,9 +67,26 @@ enum Size { SMALL, MEDIUM, LARGE, EXTRA LARCE };
 Size s = Size.MEDIUM
 ```
 
-# 特殊
+复杂使用
 
-## null
+```
+enum Size
+{
+   SMALL("S"), MEDIUM("M"), LARGE("L"), EXTRA_LARGE("XL");
+
+   private Size(String abbreviation) { this.abbreviation = abbreviation; }
+   public String getAbbreviation() { return abbreviation; }
+
+   private String abbreviation;
+}
+
+// 返回枚举常量名
+Size.SMALL.toString();
+// 字符串转枚举值
+Size s = Enum.valueOf(Size.class, "SMALL");
+// 获取全部枚举值构成的数组
+Size[] values = Size.values();
+```
 
 # 标准库
 
