@@ -19,3 +19,9 @@ Java 笔记
         - [导入类](./corejava/object-oriented/package/import-class.md)
         - [将类放入包中](./corejava/object-oriented/package/put-class-into-package.md)
     - [编译器与解释器寻找类的过程](./corejava/object-oriented/how-compiler-and-vm-find-class.md)
+    - [继承](./corejava/object-oriented/inherit.md)
+    - [多态](./corejava/object-oriented/polymorphism.md)
+    - 几个特殊类
+        - [final 类](./corejava/object-oriented//special-classes/final-class.md)
+        - [抽象类](./corejava/object-oriented/special-classes/abstract-class.md)
+        - [object 类](./corejava/object-oriented/special-classes/object-class.md)
