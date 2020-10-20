@@ -25,3 +25,6 @@ Java 笔记
         - [final 类](./corejava/object-oriented//special-classes/final-class.md)
         - [抽象类](./corejava/object-oriented/special-classes/abstract-class.md)
         - [Object 类](./corejava/object-oriented/special-classes/object-class.md)
+- 范型
+    - [数组列表](./corejava/paradigm/array-list.md)
+    - [对象包装器](./corejava/paradigm/object-wrapper.md)
