@@ -68,8 +68,7 @@ event -> System.out.println(event)
 - Class::static Method
 - Class::instanceMethod
 
-在前 2 种情况中，方法引用等价于提供方法参数的 lambda 表达式。前面已经提到，System.out::println 等价于 x -> System.out.println(x) ；对于第 3 种情况，第 1 个参数会成为方法的目标。例如，String::compareToIgnoreCase 等
-同于 (x, y) -> x.compareToIgnoreCase(y)
+在前 2 种情况中，方法引用等价于提供方法参数的 lambda 表达式。前面已经提到，System.out::println 等价于 x -> System.out.println(x)；对于第 3 种情况，第 1 个参数会成为方法的目标。例如，String::compareToIgnoreCase 等同于 (x, y) -> x.compareToIgnoreCase(y)
 
 另外，构造器引用语法如下
 
@@ -162,10 +161,10 @@ Arrays.sort ( people , Comparator.comparing(Person::getlastName) .thenConiparing
 Arrays.sort(people, Comparator.companng(Person::getName, (s, t) -> Integer.compare(s.length(), t.length())));
 ```
 
-- comparing 和 thenComparing 方法都有变体形式， 可以避免 int、 long 或 double 值的装箱
+- comparing 和 thenComparing 方法都有变体形式， 可以避免 int、long 或 double 值的装箱
 
 ```
-Arrays.sort(people, Comparator.comparingInt(p -> p.getNameO length()));
+Arrays.sort(people, Comparator.comparingInt(p -> p.getName().length()));
 ```
 
 这比上面的方法更简单些
@@ -173,7 +172,7 @@ Arrays.sort(people, Comparator.comparingInt(p -> p.getNameO length()));
 - 如果键函数可以返回 null, 可能就要用到 nullsFirst 或者 nullsLast 适配器
 
 ```
-Arrays.sort(people, comparing(Person::getMiddleName, nulIsFirst(naturalOrder())));
+Arrays.sort(people, comparing(Person::getMiddleName, nullsFirst(naturalOrder())));
 ```
 
-nullsFirst 方法需要一个比较器， naturalOrder 方法可以为任何实现了 Comparable 的类建立一个比较器。静态 reverseOrder 方法会提供自然顺序的逆序
+nullsFirst 方法需要一个比较器，naturalOrder 方法可以为任何实现了 Comparable 的类建立一个比较器。静态 reverseOrder 方法会提供自然顺序的逆序
