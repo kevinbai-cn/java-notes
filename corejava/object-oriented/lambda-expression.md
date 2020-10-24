@@ -27,7 +27,7 @@ ActionListener listener = event -> {
 
 不需要指定返回类型，但是表达式的返回值必须保持一致
 
-如果一个 lambda 表达式只在某些分支返回一个值，而在另外一些分支不返回值，这是不合法的。 例如，(int x) -> { if (x >= 0) return 1; } 就不合法。
+如果一个 lambda 表达式只在某些分支返回一个值，而在另外一些分支不返回值，这是不合法的。例如，(int x) -> { if (x >= 0) return 1; } 就不合法
 
 # 函数式接口
 
@@ -65,8 +65,8 @@ event -> System.out.println(event)
 方法的引用形式有 3 种
 
 - object::instanceMethod
-- Class ::static Method
-- Class /.instanceMethod
+- Class::static Method
+- Class::instanceMethod
 
 在前 2 种情况中，方法引用等价于提供方法参数的 lambda 表达式。前面已经提到，System.out::println 等价于 x -> System.out.println(x) ；对于第 3 种情况，第 1 个参数会成为方法的目标。例如，String::compareToIgnoreCase 等
 同于 (x, y) -> x.compareToIgnoreCase(y)
