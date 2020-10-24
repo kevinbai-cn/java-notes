@@ -158,7 +158,7 @@ Arrays.sort ( people , Comparator.comparing(Person::getlastName) .thenConiparing
 - 可以为 comparing 和 thenComparing 方法提取的键指定一个比较器
 
 ```
-Arrays.sort(people, Comparator.companng(Person::getName, (s, t) -> Integer.compare(s.length(), t.length())));
+Arrays.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compare(s.length(), t.length())));
 ```
 
 - comparing 和 thenComparing 方法都有变体形式， 可以避免 int、long 或 double 值的装箱
