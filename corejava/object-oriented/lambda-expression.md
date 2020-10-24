@@ -65,7 +65,7 @@ event -> System.out.println(event)
 方法的引用形式有 3 种
 
 - object::instanceMethod
-- Class::static Method
+- Class::staticMethod
 - Class::instanceMethod
 
 在前 2 种情况中，方法引用等价于提供方法参数的 lambda 表达式。前面已经提到，System.out::println 等价于 x -> System.out.println(x)；对于第 3 种情况，第 1 个参数会成为方法的目标。例如，String::compareToIgnoreCase 等同于 (x, y) -> x.compareToIgnoreCase(y)
@@ -153,7 +153,7 @@ Arrays.sort(people, Comparator.comparing(Person::getName));
 Arrays.sort ( people , Comparator.comparing(Person::getlastName) .thenConiparing(Person::getFi rstName));
 ```
 
-如果两个人的姓相同， 就会使用第二个比较器
+如果两个人的姓相同，就会使用第二个比较器
 
 - 可以为 comparing 和 thenComparing 方法提取的键指定一个比较器
 
