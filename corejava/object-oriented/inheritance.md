@@ -56,4 +56,4 @@ class B extends A {
 ![](http://mweb.kevinbai.com/images/16027199169985.jpg)
 
 - 由一个公共超类派生出来的所有类的集合被称为继承层次(inheritance hierarchy)（如上图）
-- 在继承 层次中， 从某个特定的类到其祖先的路径被称为该类的继承链 ( inheritance chain ) 
+- 在继承层次中，从某个特定的类到其祖先的路径被称为该类的继承链（inheritance chain）
