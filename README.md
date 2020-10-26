@@ -27,6 +27,11 @@ Java 笔记
         - [Object 类](./corejava/object-oriented/special-classes/object-class.md)
     - [接口](./corejava/object-oriented/interface.md)
     - [lambda 表达式](./corejava/object-oriented/lambda-expression.md)
+    - 内部类
+        - [普通内部类](./corejava/object-oriented/inner-class/inner-class.md)
+        - [局部内部类](./corejava/object-oriented/inner-class/local-inner-class.md)
+        - [匿名内部类](./corejava/object-oriented/inner-class/anonymous-inner-class.md)
+        - [静态内部类](./corejava/object-oriented/inner-class/static-inner-class.md)
 - 范型
     - [数组列表](./corejava/paradigm/array-list.md)
     - [对象包装器](./corejava/paradigm/object-wrapper.md)
