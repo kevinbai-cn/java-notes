@@ -32,6 +32,7 @@ Java 笔记
         - [局部内部类](./corejava/object-oriented/inner-class/local-inner-class.md)
         - [匿名内部类](./corejava/object-oriented/inner-class/anonymous-inner-class.md)
         - [静态内部类](./corejava/object-oriented/inner-class/static-inner-class.md)
+    - [代理](./corejava/object-oriented/proxy.md)
 - 范型
     - [数组列表](./corejava/paradigm/array-list.md)
     - [对象包装器](./corejava/paradigm/object-wrapper.md)
