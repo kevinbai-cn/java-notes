@@ -109,6 +109,6 @@ public class HomeController {
 
 ![](media/16040722141535.jpg)
 
-至此，小 Deomo 完成。
+至此，小 Demo 完成。
 
 PS：相关代码以及图片文件可在 `spring-in-action/code/init-spring-boot-project` 中查看
