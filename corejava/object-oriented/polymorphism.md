@@ -115,5 +115,5 @@ Employee e = m;
 
 ```
 Employee e = new Manager();
-Manager m = (Manager) e;
+Manager m = (Manager)e;
 ```
