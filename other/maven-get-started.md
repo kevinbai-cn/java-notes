@@ -14,7 +14,7 @@ Maven，为 Java 项目打造的管理和构建工具，主要功能有
 
 ```
 $ unzip apache-maven-3.6.3-bin.zip
-$ move apache-maven-3.6.3 /opt/apache-maven-3.6.3
+$ mv apache-maven-3.6.3 /opt/apache-maven-3.6.3
 $ export PATH="/opt/apache-maven-3.6.3/bin:$PATH"
 $ mvn --version
 ```
