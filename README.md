@@ -40,3 +40,7 @@ Java 笔记
 ## Spring 实战
 
 - [初始化 Spring Boot 项目](./spring-in-action/init-spring-boot-project.md)
+
+## 其它
+
+- [Maven 快速上手](./other/maven-get-started.md)
