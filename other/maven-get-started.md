@@ -54,7 +54,7 @@ my-app
 - my-app，项目名
 - pom.xml，项目描述文件
 - src/main/java，存放 Java 源码
-- src/test/java,存放测试源码
+- src/test/java，存放测试源码
 
 看下 pom.xml 文件
 
@@ -89,7 +89,7 @@ my-app
 - artifactId，类似于 Java 的类名，通常是项目名称
 - version，版本
 
-一个 Maven 工程就是由 groupId、artifactId 和 version作为唯一标识。我们在引用其他第三方库的时候，也是通过这 3 个变量确定
+一个 Maven 工程就是由 groupId、artifactId 和 version 作为唯一标识。我们在引用其他第三方库的时候，也是通过这 3 个变量确定
 
 # 理解依赖中的 scope
 
@@ -100,7 +100,7 @@ my-app
 
 # 构建流程
 
-Maven 通过生命周期（lifecycle）、阶段（phase）和 goal 来提供标准的构建流程
+Maven 通过生命周期（lifecycle）、阶段（phase）和 goal 来提供标准的构建流程。
 
 Maven 的生命周期由一系列阶段构成，以内置的生命周期 default 为例，它包含以下phase：
 
@@ -146,9 +146,9 @@ Maven 另一个常用的生命周期是 clean，它会执行 3 个phase：
 - clean（注意这个 clean 不是 lifecycle 而是 phase）
 - post-clean
 
-** 所以，我们使用 mvn 这个命令时，后面的参数是 phase，Maven 自动根据生命周期运行到指定的 phase。**
+**所以，我们使用 mvn 这个命令时，后面的参数是 phase，Maven 自动根据生命周期运行到指定的 phase。**
 
-更复杂的例子是指定多个 phase，例如，运行 mvn clean package，Maven 先执行 clean 生命周期并运行到 clean 这个 phase，然后执行default 生命周期并运行到 package 这个 phase，实际执行的phase如下：
+更复杂的例子是指定多个 phase，例如，运行 mvn clean package，Maven 先执行 clean 生命周期并运行到 clean 这个 phase，然后执行default 生命周期并运行到 package 这个 phase，实际执行的 phase 如下：
 
 - pre-clean
 - clean（注意这个 clean 是 phase）
@@ -177,7 +177,7 @@ Maven 另一个常用的生命周期是 clean，它会执行 3 个phase：
 - compile，对应执行 goal compiler:compile
 - test，对应执行 goal compiler:testCompile 和 surefire:test
 
-goal的命名总是 abc:xyz 这种形式。
+goal 的命名总是 abc:xyz 这种形式。
 
 其实我们类比一下就明白了：
 
@@ -185,7 +185,7 @@ goal的命名总是 abc:xyz 这种形式。
 - phase 相当于 Java 的 class，它包含一个或多个 goal
 - goal 相当于 class 的 method，它其实才是真正干活的
 
-大多数情况，我们只要指定phase，就默认执行这些 phase 默认绑定的 goal，只有少数情况，我们可以直接指定运行一个 goal。例如，启动 Tomcat 服务器
+大多数情况，我们只要指定 phase，就默认执行这些 phase 默认绑定的 goal，只有少数情况，我们可以直接指定运行一个 goal。例如，启动 Tomcat 服务器
 
 ```
 mvn tomcat:run
