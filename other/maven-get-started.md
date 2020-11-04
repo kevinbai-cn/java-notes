@@ -98,11 +98,25 @@ my-app
 - runtime，表示编译时不需要，但运行时需要，比如 mysql
 - provided，依赖表示编译时需要，但运行时不需要，比如 servlet-api
 
+# 编译并运行项目
+
+```
+$ cd my-app
+$ mvn package
+$ java -cp target/my-app-1.0-SNAPSHOT.jar com.mycompany.app.App
+```
+
+此时终端会输出
+
+```
+Hello World!
+```
+
 # 构建流程
 
 Maven 通过生命周期（lifecycle）、阶段（phase）和 goal 来提供标准的构建流程。
 
-Maven 的生命周期由一系列阶段构成，以内置的生命周期 default 为例，它包含以下phase：
+Maven 的生命周期由一系列阶段构成，以内置的生命周期 default 为例，它包含以下 phase：
 
 - validate
 - initialize
