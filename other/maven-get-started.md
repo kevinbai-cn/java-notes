@@ -16,10 +16,26 @@ Maven，为 Java 项目打造的管理和构建工具，主要功能有
 $ unzip apache-maven-3.6.3-bin.zip
 $ mv apache-maven-3.6.3 /opt/apache-maven-3.6.3
 $ export PATH="/opt/apache-maven-3.6.3/bin:$PATH"
+```
+
+上面的 export 语句可以放到 `~/.bashrc` 文件里，这样就不用每次手动 export 了。
+
+之后执行
+
+```
 $ mvn --version
 ```
 
-上面的 export 语句可以放到 `~/.bashrc` 文件里，这样就不用每次手动 export 了
+如果有类似这样的输出说明安装成功了
+
+```
+mvn --version
+Apache Maven 3.6.3 (cecedd343002696d0abb50b32b541b8a6ba2883f)
+Maven home: /opt/apache-maven-3.6.3
+Java version: 15, vendor: Oracle Corporation, runtime: /opt/jdk-15.jdk/Contents/Home
+Default locale: zh_CN_#Hans, platform encoding: UTF-8
+OS name: "mac os x", version: "10.15.7", arch: "x86_64", family: "mac"
+```
 
 # 创建项目
 
