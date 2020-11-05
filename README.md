@@ -44,3 +44,4 @@ Java 笔记
 ## 其它
 
 - [Maven 快速上手](./other/maven-get-started.md)
+- [新手眼中的 Java Web 体系](./other/java-web-ecosystem-in-beginer-s-eyes.md)
