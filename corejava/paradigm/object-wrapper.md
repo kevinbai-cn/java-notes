@@ -1,8 +1,8 @@
 # 概念
 
-所有的基本类型都对应了一个类，这些类称为类包装器。包括 Byte、Short、Integer、Long、Float、Double、Boolean、Character、Void
+所有的基本类型都对应了一个类，这些类称为类包装器。包括 Byte、Short、Integer、Long、Float、Double、Boolean、Character、Void。
 
-一定程度上是范型类的类型参数不支持基础类型，所以引入了这个
+一定程度上是范型类的类型参数不支持基础类型，所以引入了这个。
 
 # 自动装箱
 
