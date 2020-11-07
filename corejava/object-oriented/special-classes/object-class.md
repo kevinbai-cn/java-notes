@@ -10,9 +10,9 @@
 
 ## 扩展使用
 
-1. 检测 this 与 otherObject 是否引用同一个对象（这条语句只是一个优化。 实际上， 这是一种经常采用的形式。 因为计算这个等式要比一 个一个地比较类中的域所付出的代价小得多）
-2. 检测 otherObject 是否为 null , 如 果 为 null , 返 回 false。 这项检测是很必要的
-3. 比较 this 与 otherObject 是否属于同一个类。如果 equals 的语义在每个子类中有所改 变， 就使用 getClass 检测；如果所有的子类都拥有统一的语义， 就使用 instanceof 检测
+1. 检测 this 与 otherObject 是否引用同一个对象（这条语句只是一个优化。实际上，这是一种经常采用的形式。因为计算这个等式要比一个一个地比较类中的域所付出的代价小得多）
+2. 检测 otherObject 是否为 null，如果为 null，返回 false。这项检测是很必要的
+3. 比较 this 与 otherObject 是否属于同一个类。如果 equals 的语义在每个子类中有所改变，就使用 getClass 检测；如果所有的子类都拥有统一的语义，就使用 instanceof 检测
 4. 将 otherObject 转换为相应的类类型变量
 5. 现在开始对所有需要比较的域进行比较了。使用= 比较基本类型域，使用equals比 较对象域。如果所有的域都匹配，就返回true; 否则返回false
 

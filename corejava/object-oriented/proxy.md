@@ -54,7 +54,7 @@ Object proxy = Proxy.newProxyInstance(null, interfaces , handler)
 Class proxyClass = Proxy.getProxyClass(null, interfaces);
 ```
 
-- 所有的代理类都覆盖了 Object 类中的方法 equals、hashCode 和 toString。如同所有的代理方法一样， 这些方法仅仅调用了调用处理器的 invoke
+- 所有的代理类都覆盖了 Object 类中的方法 equals、hashCode 和 toString。如同所有的代理方法一样，这些方法仅仅调用了调用处理器的 invoke
 
 ---
 

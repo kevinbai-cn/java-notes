@@ -57,7 +57,7 @@ int i = list.get(0)
 Integer n = 0;
 n++;
 
-// 如果在一个条件表达式中混合使用 Integer 和 Double 类型， Integer 值就会拆箱， 提升为 double, 再装箱为 Double
+// 如果在一个条件表达式中混合使用 Integer 和 Double 类型，Integer 值就会拆箱，提升为 double，再装箱为 Double
 Integer n = 1;
 Double x = 2.0;
 System.out.println(true? n : x); // 打印 1.0

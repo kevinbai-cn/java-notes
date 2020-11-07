@@ -22,10 +22,10 @@ export CLASSPATH=/home/user/classdir:.:/home/user/archives.jar
 
 某个步骤成功即停止
 
-PS：从 Java SE 6 开始， 可以在 JAR 文件目录中指定通配符， 类似
+PS：从 Java SE 6 开始，可以在 JAR 文件目录中指定通配符，类似
 
 ```
-# 注意 * 使用引号括了起来，在 UNIX 中， 禁止使用 * 以防止 shell 命令进一步扩展
+# 注意 * 使用引号括了起来，在 UNIX 中，禁止使用 * 以防止 shell 命令进一步扩展
 export CLASSPATH=/home/user/archives/'*'
 ```
 

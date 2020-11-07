@@ -161,7 +161,7 @@ Arrays.sort ( people , Comparator.comparing(Person::getlastName) .thenConiparing
 Arrays.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compare(s.length(), t.length())));
 ```
 
-- comparing 和 thenComparing 方法都有变体形式， 可以避免 int、long 或 double 值的装箱
+- comparing 和 thenComparing 方法都有变体形式，可以避免 int、long 或 double 值的装箱
 
 ```
 Arrays.sort(people, Comparator.comparingInt(p -> p.getName().length()));
@@ -169,7 +169,7 @@ Arrays.sort(people, Comparator.comparingInt(p -> p.getName().length()));
 
 这比上面的方法更简单些
 
-- 如果键函数可以返回 null, 可能就要用到 nullsFirst 或者 nullsLast 适配器
+- 如果键函数可以返回 null，可能就要用到 nullsFirst 或者 nullsLast 适配器
 
 ```
 Arrays.sort(people, comparing(Person::getMiddleName, nullsFirst(naturalOrder())));
