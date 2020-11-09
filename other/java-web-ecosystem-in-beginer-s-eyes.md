@@ -159,3 +159,200 @@ public class AppListener implements ServletContextListener {
 ServletRequest、HttpSession 等很多对象也提供 getServletContext() 方法获取到同一个 ServletContext 实例。ServletContext 实例最大的作用就是设置和共享全局信息。
 
 此外，ServletContext 还提供了动态添加 Servlet、Filter、Listener 等功能，它允许应用程序在运行期间动态添加一个组件，虽然这个功能不是很常用。
+
+# 基于 Servlet 编写简单的 MVC 框架
+
+通过前面可以大概了解到
+
+- Servlet 适合编写 Java 代码，实现各种复杂的业务逻辑，但不适合输出复杂的 HTML
+- JSP 适合编写 HTML，并在其中插入动态内容，但不适合编写复杂的 Java 代码
+
+可以将两者结合起来，发挥各自的优点，避免各自的缺点。
+
+假设我们已经编写了几个 JavaBean
+
+```
+public class User {
+    public long id;
+    public String name;
+    public School school;
+}
+
+public class School {
+    public String name;
+    public String address;
+}
+```
+
+在 UserServlet 中，我们可以从数据库读取 User、School 等信息，然后，把读取到的 JavaBean 先放到 HttpServletRequest 中，再通过 forward() 传给 user.jsp 处理
+
+```
+@WebServlet(urlPatterns = "/user")
+public class UserServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 假装从数据库读取
+        School school = new School("No.1 Middle School", "101 South Street");
+        User user = new User(123, "Bob", school);
+        // 放入 Request 中
+        req.setAttribute("user", user);
+        // forward 给 user.jsp
+        req.getRequestDispatcher("/WEB-INF/user.jsp").forward(req, resp);
+    }
+}
+```
+
+在 user.jsp 中，我们只负责展示相关 JavaBean 的信息，不需要编写访问数据库等复杂逻辑
+
+```
+<%@ page import="com.itranswarp.learnjava.bean.*"%>
+<%
+    User user = (User) request.getAttribute("user");
+%>
+<html>
+<head>
+    <title>Hello World - JSP</title>
+</head>
+<body>
+    <h1>Hello <%= user.name %>!</h1>
+    <p>School Name:
+    <span style="color:red">
+        <%= user.school.name %>
+    </span>
+    </p>
+    <p>School Address:
+    <span style="color:red">
+        <%= user.school.address %>
+    </span>
+    </p>
+</body>
+</html>
+```
+
+需要注意的是
+
+- 需要展示的 User 被放入 HttpServletRequest 中以便传递给 JSP，因为一个请求对应一个 HttpServletRequest，我们也无需清理它，处理完该请求后 HttpServletRequest 实例将被丢弃
+- 把 user.jsp 放到 /WEB-INF/ 目录下，是因为 WEB-INF 是一个特殊目录，Web Server 会阻止浏览器对 WEB-INF 目录下任何资源的访问，这样就防止用户通过 /user.jsp 路径直接访问到 JSP 页面
+- JSP 页面首先从 request 变量获取 User 实例，然后在页面中直接输出，此处未考虑 HTML 的转义问题，有潜在安全风险
+
+我们在浏览器访问的时候，请求首先由 UserServlet 处理，然后交给 user.jsp 渲染
+
+![-w365](media/16049341856940.jpg)
+
+我们把 UserServlet 看作业务逻辑处理，把 User 看作模型，把 user.jsp 看作渲染，这种设计模式通常被称为 MVC：Model-View-Controller，即 UserServlet 作为控制器（Controller），User 作为模型（Model），user.jsp 作为视图（View）。
+
+通过结合 Servle t和 JSP 的 MVC 模式，我们可以发挥二者各自的优点
+
+- Servlet 实现业务逻辑
+- JSP 实现展示逻辑
+
+但是，直接把 MVC 搭在 Servlet 和 JSP 之上还是不太好，原因如下
+
+- Servlet 提供的接口仍然偏底层，需要实现 Servlet 调用相关接口
+- JSP 对页面开发不友好，更好的替代品是模板引擎
+- 业务逻辑最好由纯粹的 Java 类实现，而不是强迫继承自 Servlet
+
+能不能通过普通的 Java 类实现 MVC 的 Controller？类似下面的代码
+
+```
+public class UserController {
+    @GetMapping("/signin")
+    public ModelAndView signin() {
+        ...
+    }
+
+    @PostMapping("/signin")
+    public ModelAndView doSignin(SignInBean bean) {
+        ...
+    }
+
+    @GetMapping("/signout")
+    public ModelAndView signout(HttpSession session) {
+        ...
+    }
+}
+```
+
+上面的这个 Java 类每个方法都对应一个 GET 或 POST 请求，方法返回值是 ModelAndView，它包含一个 View 的路径以及一个 Model，这样，再由 MVC 框架处理后返回给浏览器。
+
+如果是 GET 请求，我们希望 MVC 框架能直接把 URL 参数按方法参数对应起来然后传入
+
+```
+@GetMapping("/hello")
+public ModelAndView hello(String name) {
+    ...
+}
+```
+
+如果是 POST 请求，我们希望 MVC 框架能直接把 Post 参数变成一个 JavaBean 后通过方法参数传入
+
+```
+@PostMapping("/signin")
+public ModelAndView doSignin(SignInBean bean) {
+    ...
+}
+```
+
+为了增加灵活性，如果 Controller 的方法在处理请求时需要访问 HttpServletRequest、HttpServletResponse、HttpSession 这些实例时，只要方法参数有定义，就可以自动传入
+
+```
+@GetMapping("/signout")
+public ModelAndView signout(HttpSession session) {
+    ...
+}
+```
+
+以上就是我们在设计 MVC 框架时，上层代码所需要的一切信息。
+
+如何设计一个 MVC 框架？在上文中，我们已经定义了上层代码编写 Controller 的一切接口信息，并且并不要求实现特定接口，只需返回 ModelAndView 对象，该对象包含一个 View 和一个 Model。实际上 View 就是模板的路径，而 Model 可以用一个 Map<String, Object> 表示，因此，ModelAndView 定义非常简单
+
+```
+public class ModelAndView {
+    Map<String, Object> model;
+    String view;
+}
+```
+
+比较复杂的是我们需要在 MVC 框架中创建一个接收所有请求的 Servlet，通常我们把它命名为 DispatcherServlet，它总是映射到 /，然后，根据不同的 Controller 的方法定义的 @Get 或 @Post 的 Path 决定调用哪个方法，最后，获得方法返回的 ModelAndView 后，渲染模板，写入HttpServletResponse，即完成了整个 MVC 的处理。以下是大致的架构图
+
+![-w372](media/16049347057737.jpg)
+
+DispatcherServlet 细节这里不做说明。
+
+最后渲染只需要实现一个简单的 render () 方法
+
+```
+public class ViewEngine {
+    public void render(ModelAndView mv, Writer writer) throws IOException {
+        String view = mv.view;
+        Map<String, Object> model = mv.model;
+        // 根据 view 找到模板文件
+        Template template = getTemplateByPath(view);
+        // 渲染并写入 Writer
+        template.write(writer, model);
+    }
+}
+```
+
+Java 有很多开源的模板引擎，常用的有
+
+- Thymeleaf
+- FreeMarker
+- Velocity
+
+他们的用法都大同小异。这里我们推荐一个使用 Jinja 语法的模板引擎 Pebble，它的特点是语法简单，支持模板继承，编写出来的模板类似
+
+```
+<html>
+<body>
+  <ul>
+  {% for user in users %}
+    <li><a href="{{ user.url }}">{{ user.username }}</a></li>
+  {% endfor %}
+  </ul>
+</body>
+</html>
+```
+
+即变量用 `{{ xxx }}` 表示，控制语句用 `{% xxx %}` 表示。
+
+至此，设计一个比较高级的 MVC 需要实现的东西也都被串起来了。本节内容也没有涉及过多的细节，只是让大家意识到：为了开发的便捷，从 Servlet 到低层级的 MVC，再到比较高级的 MVC，Servlet 是在慢慢的被扩展的。
