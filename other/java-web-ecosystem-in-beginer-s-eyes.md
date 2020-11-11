@@ -1,6 +1,6 @@
 这几天看了下廖雪峰的《Java 教程》Web 开发的几个章节，对 Java Web 的技术体系算是有了一点点认识，在此摘录下。
 
-# 几个 E
+# 1 几个 E
 
 ![-w241](media/16045871492438.jpg)
 
@@ -21,9 +21,9 @@ JavaEE 最核心的组件就是基于 Servlet 标准的 Web 服务器，开发�
 
 目前流行的基于 Spring 的轻量级 JavaEE 开发架构，使用最广泛的是 Servlet 和 JMS，以及一系列开源组件。
 
-# 基于 Servlet 的 Web 开发
+# 2 基于 Servlet 的 Web 开发
 
-## Servlet
+## 2.1 Servlet
 
 在 JavaEE 平台上，处理 TCP 连接，解析 HTTP 协议这些底层工作统统扔给现成的 Web 服务器去做，我们只需要把自己的应用程序跑在 Web 服务器上。为了实现这一目的，JavaEE 提供了 Servlet API，我们使用 Servlet API 编写自己的 Servlet 来处理 HTTP 请求，Web 服务器实现 Servlet API 接口，实现底层功能
 
@@ -61,7 +61,7 @@ Servlet 应用一般会打成 war 包。
 
 到这里，一个 Servlet 应用从编写到运行就能串起来了。
 
-## JSP
+## 2.2 JSP
 
 不过，从上面可以看出，如果要输出 HTML 的话，需要自己格式化进行输出，太麻烦，这样也就有了 JSP
 
@@ -93,7 +93,7 @@ Servlet 应用一般会打成 war 包。
 
 当然，还有其它的一些语法，这里了解下 JSP 文件长什么样就行。
 
-## Filter
+## 2.3 Filter
 
 为了把一些公用逻辑从各个 Servlet 中抽离出来，JavaEE 的 Servlet 规范还提供了一种 Filter 组件，即过滤器。它的作用是，在 HTTP 请求到达 Servlet 之前，可以被一个或多个 Filter 预处理，类似打印日志、登录检查等逻辑，完全可以放到 Filter 中
 
@@ -124,7 +124,7 @@ public class EncodingFilter implements Filter {
 
 这样就只过滤以 `/user/` 开头的路径。
 
-## Listener
+## 2.4 Listener
 
 除此之外，JavaEE 的 Servlet 规范还提供了第三种组件 Listener，顾名思义就是监听器。有好几种 Listener，其中最常用的是 ServletContextListener，我们编写一个实现了 ServletContextListener 接口的类如下
 
@@ -152,7 +152,7 @@ public class AppListener implements ServletContextListener {
 - ServletRequestAttributeListener：监听 ServletRequest 请求的属性变化事件（即调用 ServletRequest.setAttribute() 方法）
 - ServletContextAttributeListener：监听 ServletContext 的属性变化事件（即调用 ServletContext.setAttribute() 方法）
 
-## ServletContext
+## 2.5 ServletContext
 
 一个 Web 服务器可以运行一个或多个 WebApp，对于每个 WebApp，Web 服务器都会为其创建一个全局唯一的 ServletContext 实例，我们在 AppListener 里面编写的两个回调方法实际上对应的就是 ServletContext 实例的创建和销毁。
 
@@ -160,7 +160,7 @@ ServletRequest、HttpSession 等很多对象也提供 getServletContext() 方法
 
 此外，ServletContext 还提供了动态添加 Servlet、Filter、Listener 等功能，它允许应用程序在运行期间动态添加一个组件，虽然这个功能不是很常用。
 
-# 基于 Servlet 编写简单的 MVC 框架
+# 3 基于 Servlet 编写简单的 MVC 框架
 
 通过前面可以大概了解到
 
@@ -358,3 +358,344 @@ Java 有很多开源的模板引擎，常用的有
 至此，设计一个比较高级的 MVC 需要实现的东西也都被串起来了。
 
 本节内容没有涉及过多的细节，只是想让大家了解到，为了开发的便捷，Servlet 是怎么样一步一步被扩展的。不管是低层级的 MVC，或是比较高级的 MVC，或是以后我们要学习的新技术，都要先了解下它究竟解决了什么问题。
+
+
+# 4 Spring Framework
+
+什么是 Spring？
+
+Spring 是一个支持快速开发 Java EE 应用程序的框架。它提供了一系列底层容器和基础设施，并可以和大量常用的开源框架无缝集成，可以说是开发 JavaEE 应用程序的必备。
+
+Spring 最早是由 Rod Johnson 在他的《Expert One-on-One J2EE Development without EJB》一书中提出的用来取代 EJB 的轻量级框架。随后他又开始专心开发这个基础框架，并起名为 Spring Framework。
+
+随着 Spring 越来越受欢迎，在 Spring Framework 基础上，又诞生了 Spring Boot、Spring Cloud、Spring Data、Spring Security 等一系列基于 Spring Framework 的项目。本节我们只介绍 Spring Framework，即最核心的 Spring 框架。
+
+Spring Framework 主要包括几个模块
+
+- 支持 IoC 和 AOP 的容器
+- 支持 JDBC、声明式事务、ORM 的数据访问模块
+- 支持基于 Servlet 的 MVC 开发
+- 支持集成 JMS、JavaMail、JMX、缓存等其它模块
+
+## 4.1 IoC
+
+在学习 Spring 框架时，我们遇到的第一个也是最核心的概念就是容器。
+
+什么是容器？容器是一种为某种特定组件的运行提供必要支持的一个软件环境。例如，Tomcat 就是一个 Servlet 容器，它可以为 Servlet 的运行提供运行环境。类似 Docker 这样的软件也是一个容器，它提供了必要的 Linux 环境以便运行一个特定的 Linux 进程。
+
+Spring 的核心就是提供了一个 IoC 容器，它可以管理所有轻量级的 JavaBean 组件，提供的底层服务包括组件的生命周期管理、配置和组装服务、AOP 支持，以及建立在 AOP 基础上的声明式事务服务等。
+
+什么是 IoC？
+
+IoC 全称 Inversion of Control，直译为控制反转。那么何谓 IoC？在理解 IoC 之前，我们先看看通常的 Java 组件是如何协作的。
+
+### 4.1.1 使用 XML 配置
+
+我们假定一个在线书店，通过 BookService 获取书籍
+
+```
+public class BookService {
+    private HikariConfig config = new HikariConfig();
+    private DataSource dataSource = new HikariDataSource(config);
+
+    public Book getBook(long bookId) {
+        try (Connection conn = dataSource.getConnection()) {
+            ...
+            return book;
+        }
+    }
+}
+```
+
+为了从数据库查询书籍，BookService 持有一个 DataSource。为了实例化一个 HikariDataSource，又不得不实例化一个 HikariConfig。
+
+现在，我们继续编写 UserService 获取用户
+
+```
+public class UserService {
+    private HikariConfig config = new HikariConfig();
+    private DataSource dataSource = new HikariDataSource(config);
+
+    public User getUser(long userId) {
+        try (Connection conn = dataSource.getConnection()) {
+            ...
+            return user;
+        }
+    }
+}
+```
+
+因为 UserService 也需要访问数据库，因此，我们不得不也实例化一个 HikariDataSource。
+
+在处理用户购买的 CartServlet 中，我们需要实例化 UserService 和 BookService
+
+```
+public class CartServlet extends HttpServlet {
+    private BookService bookService = new BookService();
+    private UserService userService = new UserService();
+
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        long currentUserId = getFromCookie(req);
+        User currentUser = userService.getUser(currentUserId);
+        Book book = bookService.getBook(req.getParameter("bookId"));
+        cartService.addToCart(currentUser, book);
+        ...
+    }
+}
+```
+
+类似的，在购买历史 HistoryServlet 中，也需要实例化 UserService 和 BookService
+
+```
+public class HistoryServlet extends HttpServlet {
+    private BookService bookService = new BookService();
+    private UserService userService = new UserService();
+}
+```
+
+上述每个组件都采用了一种简单的通过 new 创建实例并持有的方式。仔细观察，会发现以下缺点
+
+- 实例化一个组件其实很难，例如，BookService 和 UserService 要创建 HikariDataSource，实际上需要读取配置，才能先实例化 HikariConfig，再实例化 HikariDataSource
+- 没有必要让 BookService 和 UserService 分别创建 DataSource 实例，完全可以共享同一个 DataSource，但谁负责创建 DataSource，谁负责获取其他组件已经创建的 DataSource，不好处理。类似的，CartServlet 和 HistoryServlet 也应当共享 BookService 实例和 UserService 实例，但也不好处理
+- 很多组件需要销毁以便释放资源，例如 DataSource，但如果该组件被多个组件共享，如何确保它的使用方都已经全部被销毁？
+- 随着更多的组件被引入，例如，书籍评论，需要共享的组件写起来会更困难，这些组件的依赖关系会越来越复杂
+- 测试某个组件，例如 BookService，是复杂的，因为必须要在真实的数据库环境下执行
+
+解决这一问题的核心方案就是 IoC。
+
+传统的应用程序中，控制权在程序本身，程序的控制流程完全由开发者控制，例如：CartServlet 创建了 BookService，在创建 BookService 的过程中，又创建了 DataSource 组件。这种模式的缺点是，一个组件如果要使用另一个组件，必须先知道如何正确地创建它。
+
+在 IoC 模式下，控制权发生了反转，即从应用程序转移到了 IoC 容器，所有组件不再由应用程序自己创建和配置，而是由 IoC 容器负责，这样，应用程序只需要直接使用已经创建好并且配置好的组件。为了能让组件在 IoC 容器中被「装配」出来，需要某种「注入」机制，例如，BookService 自己并不会创建DataSource，而是等待外部通过 setDataSource() 方法来注入一个DataSource
+
+```
+public class BookService {
+    private DataSource dataSource;
+
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+}
+```
+
+不直接 new 一个 DataSource，而是注入一个 DataSource，这个小小的改动虽然简单，却带来了一系列好处
+
+- BookService 不再关心如何创建 DataSource，因此，不必编写读取数据库配置之类的代码
+- DataSource 实例被注入到 BookService，同样也可以注入到 UserService，因此，共享一个组件非常简单
+- 测试 BookService 更容易，因为注入的是 DataSource，可以使用内存数据库，而不是真实的MySQL配置
+
+因此，IoC 又称为依赖注入（DI：Dependency Injection），它解决了一个最主要的问题：将组件的创建 + 配置与组件的使用相分离，并且，由 IoC 容器负责管理组件的生命周期。
+
+因为 IoC 容器要负责实例化所有的组件，因此，有必要告诉容器如何创建组件，以及各组件的依赖关系。一种最简单的配置是通过 XML 文件来实现，例如
+
+```
+<beans>
+    <bean id="dataSource" class="HikariDataSource" />
+    <bean id="bookService" class="BookService">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    <bean id="userService" class="UserService">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+</beans>
+```
+
+上述 XML 配置文件指示 IoC 容器创建 3 个 JavaBean 组件，并把 id 为 dataSource 的组件通过属性 dataSource（即调用 setDataSource() 方法）注入到另外两个组件中。
+
+在 Spring 的 IoC 容器中，我们把所有组件统称为 JavaBean，即配置一个组件就是配置一个 Bean。
+
+我们从上面的代码可以看到，依赖注入可以通过 set() 方法实现。但依赖注入也可以通过构造方法实现。
+
+很多Java类都具有带参数的构造方法，如果我们把 BookService 改造为通过构造方法注入，那么实现代码如下：
+
+```
+public class BookService {
+    private DataSource dataSource;
+
+    public BookService(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+}
+```
+
+Spring 的 IoC 容器同时支持属性注入和构造方法注入，并允许混合使用。
+
+### 4.1.2 使用注解配置
+
+使用 XML 配置的优点是所有的 Bean 都能一目了然地列出来，并通过配置注入能直观地看到每个 Bean 的依赖。它的缺点是写起来非常繁琐，每增加一个组件，就必须把新的 Bean 配置到 XML 中
+
+有没有其他更简单的配置方式呢？
+
+有！我们可以使用 Annotation 配置，可以完全不需要 XML，让 Spring 自动扫描 Bean 并组装它们。
+
+首先，我们给 MailService 添加一个 @Component 注解
+
+```
+@Component
+public class MailService {
+    ...
+}
+```
+
+这个 @Component 注解就相当于定义了一个 Bean，它有一个可选的名称，默认是 mailService，即小写开头的类名。
+
+然后，我们给 UserService 添加一个 @Component 注解和一个 @Autowired 注解
+
+```
+@Component
+public class UserService {
+    @Autowired
+    MailService mailService;
+
+    ...
+}
+```
+
+使用 @Autowired 就相当于把指定类型的 Bean 注入到指定的字段中。和 XML 配置相比，@Autowired 大幅简化了注入，因为它不但可以写在 set() 方法上，还可以直接写在字段上，甚至可以写在构造方法中
+
+```
+@Component
+public class UserService {
+    MailService mailService;
+
+    public UserService(@Autowired MailService mailService) {
+        this.mailService = mailService;
+    }
+    ...
+}
+```
+
+我们一般把 @Autowired 写在字段上，通常使用 package 权限的字段，便于测试。
+
+最后，编写一个 AppConfig 类启动容器
+
+```
+@Configuration
+@ComponentScan
+public class AppConfig {
+    public static void main(String[] args) {
+        ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+        UserService userService = context.getBean(UserService.class);
+        User user = userService.login("bob@example.com", "password");
+        System.out.println(user.getName());
+    }
+}
+```
+
+除了 main() 方法外，AppConfig 标注了 @Configuration，表示它是一个配置类，因为我们创建 ApplicationContext 时
+
+```
+ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+```
+
+使用的实现类是 AnnotationConfigApplicationContext，必须传入一个标注了 @Configuration 的类名。
+
+此外，AppConfig 还标注了 @ComponentScan，它告诉容器，自动搜索当前类所在的包以及子包，把所有标注为 @Component 的 Bean 自动创建出来，并根据 @Autowired 进行装配。
+
+
+## 4.2 AOP
+
+什么是 AOP？
+
+AOP 是 Aspect Oriented Programming，即面向切面编程。
+
+我们先回顾一下 OOP：Object Oriented Programming，OOP 作为面向对象编程的模式，获得了巨大的成功，OOP 的主要功能是数据封装、继承和多态。
+
+而 AOP 是一种新的编程方式，它和 OOP 不同，OOP 把系统看作多个对象的交互，AOP 把系统分解为不同的关注点，或者称之为切面（Aspect）。
+
+要理解 AOP 的概念，我们先用 OOP 举例，比如一个业务组件 BookService，它有几个业务方法
+
+- createBook：添加新的Book
+- updateBook：修改Book
+- deleteBook：删除Book
+
+对每个业务方法，例如，createBook()，除了业务逻辑，还需要安全检查、日志记录和事务处理，它的代码像这样
+
+```
+public class BookService {
+    public void createBook(Book book) {
+        securityCheck();
+        Transaction tx = startTransaction();
+        try {
+            // 核心业务逻辑
+            tx.commit();
+        } catch (RuntimeException e) {
+            tx.rollback();
+            throw e;
+        }
+        log("created book: " + book);
+    }
+}
+```
+
+继续编写 updateBook()，代码如下
+
+```
+public class BookService {
+    public void updateBook(Book book) {
+        securityCheck();
+        Transaction tx = startTransaction();
+        try {
+            // 核心业务逻辑
+            tx.commit();
+        } catch (RuntimeException e) {
+            tx.rollback();
+            throw e;
+        }
+        log("updated book: " + book);
+    }
+}
+```
+
+对于安全检查、日志、事务等代码，它们会重复出现在每个业务方法中。使用 OOP，我们很难将这些四处分散的代码模块化。
+
+考察业务模型可以发现，BookService 关系的是自身的核心逻辑，但整个系统还要求关注安全检查、日志、事务等功能，这些功能实际上「横跨」多个业务方法，为了实现这些功能，不得不在每个业务方法上重复编写代码。
+
+一种可行的方式是使用 Proxy 模式，将某个功能，例如，权限检查，放入 Proxy 中
+
+```
+public class SecurityCheckBookService implements BookService {
+    private final BookService target;
+
+    public SecurityCheckBookService(BookService target) {
+        this.target = target;
+    }
+
+    public void createBook(Book book) {
+        securityCheck();
+        target.createBook(book);
+    }
+
+    public void updateBook(Book book) {
+        securityCheck();
+        target.updateBook(book);
+    }
+
+    public void deleteBook(Book book) {
+        securityCheck();
+        target.deleteBook(book);
+    }
+
+    private void securityCheck() {
+        ...
+    }
+}
+```
+
+这种方式的缺点是比较麻烦，必须先抽取接口，然后，针对每个方法实现 Proxy。
+
+另一种方法是，既然 SecurityCheckBookService 的代码都是标准的 Proxy 样板代码，不如把权限检查视作一种切面（Aspect），把日志、事务也视为切面，然后，以某种自动化的方式，把切面织入到核心逻辑中，实现 Proxy 模式。
+
+如果我们以 AOP 的视角来编写上述业务，可以依次实现
+
+- 核心逻辑，即 BookService
+- 切面逻辑，即：权限检查的 Aspect、日志的 Aspect、事务的 Aspect
+
+然后，以某种方式，让框架来把上述 3 个 Aspect 以 Proxy 的方式「织入」到 BookService 中，这样一来，就不必编写复杂而冗长的 Proxy 模式。
+
+在 Java 平台上，对于 AOP 的织入，有 3 种方式 
+
+1. 编译期：在编译时，由编译器把切面调用编译进字节码，这种方式需要定义新的关键字并扩展编译器，AspectJ 就扩展了 Java 编译器，使用关键字 aspect 来实现织入
+2. 类加载器：在目标类被装载到 JVM 时，通过一个特殊的类加载器，对目标类的字节码重新「增强」
+3. 运行期：目标对象和切面都是普通 Java 类，通过 JVM 的动态代理功能或者第三方库实现运行期动态织入
+
+在 Spring 中，我们可以引入 AspectJ 依赖实现 AOP，这里细节不进行说明，大家了解下 AOP 的基本作用和大致原理就行。
