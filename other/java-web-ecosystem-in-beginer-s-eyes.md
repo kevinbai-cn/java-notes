@@ -373,7 +373,7 @@ Spring 最早是由 Rod Johnson 在他的《Expert One-on-One J2EE Development w
 Spring Framework 主要包括几个模块
 
 - 支持 IoC 和 AOP 的容器
-- 支持 JDBC、声明式事务、ORM 的数据访问模块
+- 支持 JDBC、ORM 的数据访问模块
 - 支持基于 Servlet 的 MVC 开发
 - 支持集成 JMS、JavaMail、JMX、缓存等其它模块
 
@@ -801,7 +801,7 @@ CREATE TABLE user
 );
 ```
 
-其中，id 是自增主键，email、password、name 是 VARCHA R类型，email 带唯一索引以确保唯一性，createdAt 存储整型类型的时间戳。用 JavaBean 表示如下
+其中，id 是自增主键，email、password、name 是 VARCHAR 类型，email 带唯一索引以确保唯一性，createdAt 存储整型类型的时间戳。用 JavaBean 表示如下
 
 ```
 public class User {
@@ -907,13 +907,57 @@ public User getUserByEmail(String email) {
 }
 ```
 
+插入操作的话类似这样
+
+```
+public User register(String email, String password, String name) {
+    // 创建一个User对象
+    User user = new User();
+    // 设置好各个属性
+    user.setEmail(email);
+    user.setPassword(password);
+    user.setName(name);
+    // 不要设置id，因为使用了自增主键
+    // 保存到数据库
+    hibernateTemplate.save(user);
+    // 现在已经自动获得了id
+    System.out.println(user.getId());
+    return user;
+}
+```
+
+删除类似这样
+
+```
+public boolean deleteUser(Long id) {
+    User user = hibernateTemplate.get(User.class, id);
+    if (user != null) {
+        hibernateTemplate.delete(user);
+        return true;
+    }
+    return false;
+}
+```
+
+更新类似这样
+
+```
+public void updateUser(Long id, String name) {
+    User user = hibernateTemplate.load(User.class, id);
+    user.setName(name);
+    hibernateTemplate.update(user);
+}
+```
+
+可以看出使用 ORM 的方式可以比较方便的对数据库中的数据进行操作。
+
 - MyBatis
 
-使用 JPA 操作数据库时，这类 ORM 干的主要工作就是把 ResultSet 的每一行变成 Java Bean，或者把 Java Bean 自动转换到 INSERT 或 UPDATE 语句的参数中，从而实现 ORM。
+使用 JPA 操作数据库时，这类 ORM 干的主要工作就是把 ResultSet 的每一行变成 JavaBean，或者把 JavaBean 自动转换到 INSERT 或 UPDATE 语句的参数中，从而实现 ORM。
 
-而 ORM 框架之所以知道如何把行数据映射到 Java Bean，是因为我们在 Java Bean 的属性上给了足够的注解作为元数据，ORM 框架获取 Java Bean 的注解后，就知道如何进行双向映射。
+而 ORM 框架之所以知道如何把行数据映射到 JavaBean，是因为我们在 JavaBean 的属性上给了足够的注解作为元数据，ORM 框架获取 JavaBean 的注解后，就知道如何进行双向映射。
 
-那么，ORM 框架是如何跟踪 Java Bean 的修改，以便在 update() 操作中更新必要的属性？
+那么，ORM 框架是如何跟踪 JavaBean 的修改，以便在 update() 操作中更新必要的属性？
 
 答案是使用 Proxy 模式，从 ORM 框架读取的 User 实例实际上并不是 User 类，而是代理类，代理类继承自 User 类，但针对每个 setter 方法做了覆写
 
@@ -952,9 +996,9 @@ public class UserProxy extends User {
 }
 ```
 
-为了实现这样的查询，UserProxy 必须保存 Hibernate 的当前 Session。但是，当事务提交后，Session 自动关闭，此时再获取 getAddress() 将无法访问数据库，或者获取的不是事务一致的数据。因此，ORM 框架总是引入了 Attached/Detached 状态，表示当前此 Java Bean 到底是在 Session 的范围内，还是脱离了 Session 变成了一个「游离」对象。很多初学者无法正确理解状态变化和事务边界，就会造成大量的 PersistentObjectException 异常。这种隐式状态使得普通 Java Bean 的生命周期变得复杂。
+为了实现这样的查询，UserProxy 必须保存 Hibernate 的当前 Session。但是，当事务提交后，Session 自动关闭，此时再获取 getAddress() 将无法访问数据库，或者获取的不是事务一致的数据。因此，ORM 框架总是引入了 Attached/Detached 状态，表示当前此 JavaBean 到底是在 Session 的范围内，还是脱离了 Session 变成了一个「游离」对象。很多初学者无法正确理解状态变化和事务边界，就会造成大量的 PersistentObjectException 异常。这种隐式状态使得普通 JavaBean 的生命周期变得复杂。
 
-此外，Hibernate 和 JPA 为了实现兼容多种数据库，它使用 HQL 或J PQL查询，经过一道转换，变成特定数据库的 SQL，理论上这样可以做到无缝切换数据库，但这一层自动转换除了少许的性能开销外，给 SQL 级别的优化带来了麻烦。
+此外，Hibernate 和 JPA 为了实现兼容多种数据库，它使用 HQL 或 JPQL查询，经过一道转换，变成特定数据库的 SQL，理论上这样可以做到无缝切换数据库，但这一层自动转换除了少许的性能开销外，给 SQL 级别的优化带来了麻烦。
 
 最后，ORM 框架通常提供了缓存，并且还分为一级缓存和二级缓存。
 
@@ -1015,8 +1059,10 @@ List<User> getAll(@Param("offset") int offset, @Param("maxResults") int maxResul
 注意：MyBatis 执行查询后，将根据方法的返回类型自动把 ResultSet 的每一行转换为 User 实例，转换规则当然是按列名和属性名对应。如果列名和属性名不同，最简单的方式是编写 SELECT 语句的别名：
 
 ```
--- 列名是created_time，属性名是createdAt:
+-- 列名是created_time，属性名是createdAt
 SELECT id, name, email, created_time AS createdAt FROM users
 ```
 
 执行 INSERT、UPDATE、DELETE 也大体是按这种模式来，这里不一一说明。
+
+使用 MyBatis 最大的问题是所有 SQL 都需要全部手写，优点是执行的 SQL 就是我们自己写的 SQL，对 SQL 进行优化非常简单，也可以编写任意复杂的 SQL，或者使用数据库的特定语法，但切换数据库可能就不太容易。好消息是大部分项目并没有切换数据库的需求，完全可以针对某个数据库编写尽可能优化的 SQL。
