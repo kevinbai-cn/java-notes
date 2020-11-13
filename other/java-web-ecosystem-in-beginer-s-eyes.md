@@ -705,7 +705,7 @@ public class SecurityCheckBookService implements BookService {
 
 数据库基本上是现代应用程序的标准存储，绝大多数程序都把自己的业务数据存储在关系数据库中，可见，访问数据库几乎是所有应用程序必备能力。
 
-- JDBC
+### 4.3.1 JDBC
 
 什么是 JDBC？JDBC 是 Java DataBase Connectivity 的缩写，它是 Java 程序访问数据库的标准接口。各数据库厂商以「驱动」的形式实现接口。应用程序要使用哪个数据库，就把该数据库厂商的驱动以 jar 包形式引入进来，同时自身仅使用 JDBC 接口，编译期并不需要特定厂商的驱动。
 
@@ -757,7 +757,7 @@ public Ingredient findById(String id) {
 
 SQLException 是一个检查型异常，它需要在 catch 代码块中进行处理。但是，对于常见的问题，如创建到数据库的连接失败或者输入的查询有错误，在 catch 代码块中是无法解决的，并且有可能要继续抛出以便于上游进行处理。
 
-- JdbcTemplate
+### 4.3.2 JdbcTemplate
 
 Spring 提供的 JdbcTemplate 采用 Template 模式，提供了一系列以回调为特点的工具方法，目的是避免繁琐的 `try...catch` 语句。
 
@@ -781,7 +781,7 @@ private Ingredient mapRowToIngredient(ResultSet rs, int rowNum)
 
 不管是 JDBC 还是 JdbcTemplate，除了查询外还提供了更新等操作，这里我们不一一介绍。
 
-- JPA
+### 4.3.3 JPA
 
 JPA 是 JavaEE 的一个 ORM 标准，用户如果使用 JPA，那么引用的就是 javax.persistence 这个「标准」包。
 
@@ -951,7 +951,7 @@ public void updateUser(Long id, String name) {
 
 可以看出使用 ORM 的方式可以比较方便的对数据库中的数据进行操作。
 
-- MyBatis
+### 4.3.4 MyBatis
 
 使用 JPA 操作数据库时，这类 ORM 干的主要工作就是把 ResultSet 的每一行变成 JavaBean，或者把 JavaBean 自动转换到 INSERT 或 UPDATE 语句的参数中，从而实现 ORM。
 
