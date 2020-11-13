@@ -465,7 +465,7 @@ public class HistoryServlet extends HttpServlet {
 
 传统的应用程序中，控制权在程序本身，程序的控制流程完全由开发者控制，例如：CartServlet 创建了 BookService，在创建 BookService 的过程中，又创建了 DataSource 组件。这种模式的缺点是，一个组件如果要使用另一个组件，必须先知道如何正确地创建它。
 
-在 IoC 模式下，控制权发生了反转，即从应用程序转移到了 IoC 容器，所有组件不再由应用程序自己创建和配置，而是由 IoC 容器负责，这样，应用程序只需要直接使用已经创建好并且配置好的组件。为了能让组件在 IoC 容器中被「装配」出来，需要某种「注入」机制，例如，BookService 自己并不会创建DataSource，而是等待外部通过 setDataSource() 方法来注入一个DataSource
+在 IoC 模式下，控制权发生了反转，即从应用程序转移到了 IoC 容器，所有组件不再由应用程序自己创建和配置，而是由 IoC 容器负责，这样，应用程序只需要直接使用已经创建好并且配置好的组件。为了能让组件在 IoC 容器中被「装配」出来，需要某种「注入」机制，例如，BookService 自己并不会创建 DataSource，而是等待外部通过 setDataSource() 方法来注入一个 DataSource
 
 ```
 public class BookService {
@@ -481,7 +481,7 @@ public class BookService {
 
 - BookService 不再关心如何创建 DataSource，因此，不必编写读取数据库配置之类的代码
 - DataSource 实例被注入到 BookService，同样也可以注入到 UserService，因此，共享一个组件非常简单
-- 测试 BookService 更容易，因为注入的是 DataSource，可以使用内存数据库，而不是真实的MySQL配置
+- 测试 BookService 更容易，因为注入的是 DataSource，可以使用内存数据库，而不是真实的 MySQL 配置
 
 因此，IoC 又称为依赖注入（DI：Dependency Injection），它解决了一个最主要的问题：将组件的创建 + 配置与组件的使用相分离，并且，由 IoC 容器负责管理组件的生命周期。
 
@@ -505,7 +505,7 @@ public class BookService {
 
 我们从上面的代码可以看到，依赖注入可以通过 set() 方法实现。但依赖注入也可以通过构造方法实现。
 
-很多Java类都具有带参数的构造方法，如果我们把 BookService 改造为通过构造方法注入，那么实现代码如下：
+很多 Java 类都具有带参数的构造方法，如果我们把 BookService 改造为通过构造方法注入，那么实现代码如下：
 
 ```
 public class BookService {
@@ -688,7 +688,7 @@ public class SecurityCheckBookService implements BookService {
 如果我们以 AOP 的视角来编写上述业务，可以依次实现
 
 - 核心逻辑，即 BookService
-- 切面逻辑，即：权限检查的 Aspect、日志的 Aspect、事务的 Aspect
+- 切面逻辑，即权限检查的 Aspect、日志的 Aspect、事务的 Aspect
 
 然后，以某种方式，让框架来把上述 3 个 Aspect 以 Proxy 的方式「织入」到 BookService 中，这样一来，就不必编写复杂而冗长的 Proxy 模式。
 
@@ -699,3 +699,324 @@ public class SecurityCheckBookService implements BookService {
 3. 运行期：目标对象和切面都是普通 Java 类，通过 JVM 的动态代理功能或者第三方库实现运行期动态织入
 
 在 Spring 中，我们可以引入 AspectJ 依赖实现 AOP，这里细节不进行说明，大家了解下 AOP 的基本作用和大致原理就行。
+
+
+## 4.3 访问数据库
+
+数据库基本上是现代应用程序的标准存储，绝大多数程序都把自己的业务数据存储在关系数据库中，可见，访问数据库几乎是所有应用程序必备能力。
+
+- JDBC
+
+什么是 JDBC？JDBC 是 Java DataBase Connectivity 的缩写，它是 Java 程序访问数据库的标准接口。各数据库厂商以「驱动」的形式实现接口。应用程序要使用哪个数据库，就把该数据库厂商的驱动以 jar 包形式引入进来，同时自身仅使用 JDBC 接口，编译期并不需要特定厂商的驱动。
+
+使用 JDBC 查询的代码类似这样
+
+```
+public Ingredient findById(String id) {
+    Connection connection = null;
+    PreparedStatement statement = null;
+    ResultSet resultSet = null;
+    try {
+        connection = dataSource.getConnection();
+        statement = connection.prepareStatement(
+                "select id, name, type from Ingredient");
+        statement.setString(1, id);
+        resultSet = statement.executeQuery();
+        Ingredient ingredient = null;
+        if(resultSet.next()) {
+            ingredient = new Ingredient(
+                    resultSet.getString("id"),
+                    resultSet.getString("name"),
+                    Ingredient.Type.valueOf(resultSet.getString("type")));
+        }
+        return ingredient;
+    } catch (SQLException e) {
+        // ??? What should be done here ???
+    } finally {
+        if (resultSet != null) {
+            try {
+                resultSet.close();
+            } catch (SQLException e) {}
+        }
+        if (statement != null) {
+            try {
+                statement.close();
+            } catch (SQLException e) {}
+        }
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {}
+        }
+    }
+    return null;
+}
+```
+
+在创建连接、创建语句或执行查询的时候，可能会出现很多错误。这就要求我们捕获 SQLException，它对于找出哪里出现了问题或如何解决问题可能有所帮助，也可能毫无用处。
+
+SQLException 是一个检查型异常，它需要在 catch 代码块中进行处理。但是，对于常见的问题，如创建到数据库的连接失败或者输入的查询有错误，在 catch 代码块中是无法解决的，并且有可能要继续抛出以便于上游进行处理。
+
+- JdbcTemplate
+
+Spring 提供的 JdbcTemplate 采用 Template 模式，提供了一系列以回调为特点的工具方法，目的是避免繁琐的 `try...catch` 语句。
+
+```
+private JdbcTemplate jdbc;
+    
+public Ingredient findById(String id) {
+    return jdbc.queryForObject(
+            "select id, name, type from Ingredient where id=?",
+            this::mapRowToIngredient, id);
+}
+    
+private Ingredient mapRowToIngredient(ResultSet rs, int rowNum)
+        throws SQLException {
+    return new Ingredient(
+            rs.getString("id"),
+            rs.getString("name"),
+            Ingredient.Type.valueOf(rs.getString("type")));
+}
+```
+
+不管是 JDBC 还是 JdbcTemplate，除了查询外还提供了更新等操作，这里我们不一一介绍。
+
+- JPA
+
+JPA 是 JavaEE 的一个 ORM 标准，用户如果使用 JPA，那么引用的就是 javax.persistence 这个「标准」包。
+
+使用 JPA 可以选择 Hibernate 作为底层实现，但也可以选择其它的 JPA 提供方，比如 EclipseLink。Spring 内置了 JPA 的集成，并支持选择Hibernate 或 EclipseLink 作为实现。这里我们以 Hibernate 作为 JPA 实现为例子，演示 JPA 的基本用法。
+
+假设有如下的数据库表
+
+```
+CREATE TABLE user
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    email VARCHAR(100) NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    createdAt BIGINT NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `email` (`email`)
+);
+```
+
+其中，id 是自增主键，email、password、name 是 VARCHA R类型，email 带唯一索引以确保唯一性，createdAt 存储整型类型的时间戳。用 JavaBean 表示如下
+
+```
+public class User {
+    private Long id;
+    private String email;
+    private String password;
+    private String name;
+    private Long createdAt;
+
+    // getters and setters
+    ...
+}
+```
+
+这种映射关系十分易懂，但我们需要添加一些注解来告诉 Hibernate 如何把 User 类映射到表记录
+
+```
+@Entity
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false, updatable = false)
+    public Long getId() { ... }
+
+    @Column(nullable = false, unique = true, length = 100)
+    public String getEmail() { ... }
+
+    @Column(nullable = false, length = 100)
+    public String getPassword() { ... }
+
+    @Column(nullable = false, length = 100)
+    public String getName() { ... }
+
+    @Column(nullable = false, updatable = false)
+    public Long getCreatedAt() { ... }
+}
+```
+
+如果一个 JavaBean 被用于映射，我们就标记一个 @Entity。默认情况下，映射的表名是 user，如果实际的表名不同，例如实际表名是 users，可以追加一个 @Table(name="users") 表示
+
+```
+@Entity
+@Table(name="users)
+public class User {
+    ...
+}
+```
+
+每个属性到数据库列的映射用 @Column() 标识，nullable 指示列是否允许为 NULL，updatable 指示该列是否允许被用在 UPDATE 语句，length 指示 String 类型的列的长度（如果没有指定，默认是 255）。
+
+对于主键，还需要用 @Id 标识，自增主键再追加一个 @GeneratedValue，以便 Hibernate 能读取到自增主键的值。
+
+查询的时候类似这样
+
+```
+public User getUserById(long id) {
+    User user = this.em.find(User.class, id);
+    if (user == null) {
+        throw new RuntimeException("User not found by id: " + id);
+    }
+    return user;
+}
+```
+
+JPA 同样支持 Criteria 查询，比如我们需要的查询如下
+
+```
+SELECT * FROM user WHERE email = ?
+```
+
+使用 Criteria 查询的代码如下
+
+```
+public User fetchUserByEmail(String email) {
+    // CriteriaBuilder
+    var cb = em.getCriteriaBuilder();
+    CriteriaQuery<User> q = cb.createQuery(User.class);
+    Root<User> r = q.from(User.class);
+    q.where(cb.equal(r.get("email"), cb.parameter(String.class, "e")));
+    TypedQuery<User> query = em.createQuery(q);
+    // 绑定参数
+    query.setParameter("e", email);
+    // 执行查询
+    List<User> list = query.getResultList();
+    return list.isEmpty() ? null : list.get(0);
+}
+```
+
+一个简单的查询用 Criteria 写出来就像上面那样复杂，太恐怖了，如果条件多加几个，这种写法谁读得懂？
+
+所以，正常人还是建议写 JPQL 查询，它的语法类似 SQL
+
+```
+public User getUserByEmail(String email) {
+    // JPQL查询
+    TypedQuery<User> query = em.createQuery("SELECT u FROM User u WHERE u.email = :e", User.class);
+    query.setParameter("e", email);
+    List<User> list = query.getResultList();
+    if (list.isEmpty()) {
+        throw new RuntimeException("User not found by email.");
+    }
+    return list.get(0);
+}
+```
+
+- MyBatis
+
+使用 JPA 操作数据库时，这类 ORM 干的主要工作就是把 ResultSet 的每一行变成 Java Bean，或者把 Java Bean 自动转换到 INSERT 或 UPDATE 语句的参数中，从而实现 ORM。
+
+而 ORM 框架之所以知道如何把行数据映射到 Java Bean，是因为我们在 Java Bean 的属性上给了足够的注解作为元数据，ORM 框架获取 Java Bean 的注解后，就知道如何进行双向映射。
+
+那么，ORM 框架是如何跟踪 Java Bean 的修改，以便在 update() 操作中更新必要的属性？
+
+答案是使用 Proxy 模式，从 ORM 框架读取的 User 实例实际上并不是 User 类，而是代理类，代理类继承自 User 类，但针对每个 setter 方法做了覆写
+
+```
+public class UserProxy extends User {
+    boolean _isNameChanged;
+
+    public void setName(String name) {
+        super.setName(name);
+        _isNameChanged = true;
+    }
+}
+```
+
+这样，代理类可以跟踪到每个属性的变化。
+
+```
+public class UserProxy extends User {
+    Session _session;
+    boolean _isNameChanged;
+
+    public void setName(String name) {
+        super.setName(name);
+        _isNameChanged = true;
+    }
+
+    /**
+     * 获取User对象关联的Address对象:
+     */
+    public Address getAddress() {
+        Query q = _session.createQuery("from Address where userId = :userId");
+        q.setParameter("userId", this.getId());
+        List<Address> list = query.list();
+        return list.isEmpty() ? null : list(0);
+    }
+}
+```
+
+为了实现这样的查询，UserProxy 必须保存 Hibernate 的当前 Session。但是，当事务提交后，Session 自动关闭，此时再获取 getAddress() 将无法访问数据库，或者获取的不是事务一致的数据。因此，ORM 框架总是引入了 Attached/Detached 状态，表示当前此 Java Bean 到底是在 Session 的范围内，还是脱离了 Session 变成了一个「游离」对象。很多初学者无法正确理解状态变化和事务边界，就会造成大量的 PersistentObjectException 异常。这种隐式状态使得普通 Java Bean 的生命周期变得复杂。
+
+此外，Hibernate 和 JPA 为了实现兼容多种数据库，它使用 HQL 或J PQL查询，经过一道转换，变成特定数据库的 SQL，理论上这样可以做到无缝切换数据库，但这一层自动转换除了少许的性能开销外，给 SQL 级别的优化带来了麻烦。
+
+最后，ORM 框架通常提供了缓存，并且还分为一级缓存和二级缓存。
+
+一级缓存是指在一个 Session 范围内的缓存，常见的情景是根据主键查询时，两次查询可以返回同一实例
+
+```
+User user1 = session.load(User.class, 123);
+User user2 = session.load(User.class, 123);
+```
+
+二级缓存是指跨 Session 的缓存，一般默认关闭，需要手动配置。二级缓存极大的增加了数据的不一致性，原因在于 SQL 非常灵活，常常会导致意外的更新。例如
+
+```
+// 线程1读取
+User user1 = session1.load(User.class, 123);
+...
+// 一段时间后，线程2读取
+User user2 = session2.load(User.class, 123);
+```
+
+当二级缓存生效的时候，两个线程读取的 User 实例是一样的，但是，数据库对应的行记录完全可能被修改，例如
+
+```
+UPDATE users SET bonus = bonus + 100 WHERE createdAt <= ?
+```
+
+ORM 无法判断 id=123 的用户是否受该 UPDATE 语句影响。考虑到数据库通常会支持多个应用程序，此 UPDATE 语句可能由其他进程执行，ORM 框架就更不知道了。
+
+我们把这种 ORM 框架称之为全自动 ORM 框架。
+
+对比 Spring 提供的 JdbcTemplate，它和 ORM 框架相比，主要有几点差别
+
+- 查询后需要手动提供 Mapper 实例以便把 ResultSet 的每一行变为 Java 对象
+- 增删改操作所需的参数列表，需要手动传入，即把 User 实例变为 `[user.id, user.name, user.email]` 这样的列表，比较麻烦
+
+但是 JdbcTemplate 的优势在于它的确定性：即每次读取操作一定是数据库操作而不是缓存，所执行的 SQL 是完全确定的，缺点就是代码比较繁琐，构造 `INSERT INTO users VALUES (?,?,?)` 更是复杂。
+
+所以，介于全自动 ORM 如 Hibernate 和手写全部如 JdbcTemplate 之间，还有一种半自动的 ORM，它只负责把 ResultSet 自动映射到 Java Bean，或者自动填充 Java Bean 参数，但仍需自己写出 SQL。MyBatis 就是这样一种半自动化 ORM 框架。
+
+MyBatis 使用 Mapper 来实现映射，而且 Mapper 必须是接口。我们以 User 类为例，在 User 类和 users 表之间映射的 UserMapper 编写如下
+
+```
+public interface UserMapper {
+	@Select("SELECT * FROM users WHERE id = #{id}")
+	User getById(@Param("id") long id);
+}
+```
+
+注意：这里的 Mapper 不是 JdbcTemplate 的 RowMapper 的概念，它是定义访问 users 表的接口方法。比如我们定义了一个 User getById(long) 的主键查询方法，不仅要定义接口方法本身，还要明确写出查询的 SQL，这里用注解 @Select 标记。SQL 语句的任何参数，都与方法参数按名称对应。例如，方法参数 id 的名字通过注解 @Param() 标记为 id，则 SQL 语句里将来替换的占位符就是 `#{id}`。
+
+如果有多个参数，那么每个参数命名后直接在 SQL 中写出对应的占位符即可
+
+```
+@Select("SELECT * FROM users LIMIT #{offset}, #{maxResults}")
+List<User> getAll(@Param("offset") int offset, @Param("maxResults") int maxResults);
+```
+
+注意：MyBatis 执行查询后，将根据方法的返回类型自动把 ResultSet 的每一行转换为 User 实例，转换规则当然是按列名和属性名对应。如果列名和属性名不同，最简单的方式是编写 SELECT 语句的别名：
+
+```
+-- 列名是created_time，属性名是createdAt:
+SELECT id, name, email, created_time AS createdAt FROM users
+```
+
+执行 INSERT、UPDATE、DELETE 也大体是按这种模式来，这里不一一说明。
