@@ -1042,8 +1042,8 @@ MyBatis 使用 Mapper 来实现映射，而且 Mapper 必须是接口。我们�
 
 ```
 public interface UserMapper {
-	@Select("SELECT * FROM users WHERE id = #{id}")
-	User getById(@Param("id") long id);
+    @Select("SELECT * FROM users WHERE id = #{id}")
+    User getById(@Param("id") long id);
 }
 ```
 
@@ -1066,3 +1066,252 @@ SELECT id, name, email, created_time AS createdAt FROM users
 执行 INSERT、UPDATE、DELETE 也大体是按这种模式来，这里不一一说明。
 
 使用 MyBatis 最大的问题是所有 SQL 都需要全部手写，优点是执行的 SQL 就是我们自己写的 SQL，对 SQL 进行优化非常简单，也可以编写任意复杂的 SQL，或者使用数据库的特定语法，但切换数据库可能就不太容易。好消息是大部分项目并没有切换数据库的需求，完全可以针对某个数据库编写尽可能优化的 SQL。
+
+## 4.4 Spring MVC
+
+从之前的内容我们大致了解了 JavaEE 中 Web 开发的基础：Servlet。具体地说，有以下几点
+
+- Servlet 规范定义了几种标准组件：Servlet、JSP、Filter 和 Listener
+- Servlet 的标准组件总是运行在 Servlet 容器中，如 Tomcat、Jetty、WebLogic 等
+
+直接使用 Servlet 进行 Web 开发好比直接在 JDBC 上操作数据库，比较繁琐，更好的方法是在 Servlet 基础上封装 MVC 框架，基于 MVC 开发 Web 应用，大部分时候，不需要接触 Servlet API，开发省时省力。
+
+我们在介绍 Servlet 相关知识时大概说了下如何编写 MVC 框架。当然，自己写的 MVC 主要是理解原理，要实现一个功能全面的 MVC 需要大量的工作以及广泛的测试。
+
+因此，开发 Web 应用，首先要选择一个优秀的 MVC 框架。常用的 MVC 框架有
+
+- Struts：最古老的一个 MVC 框架，目前版本是 2，和 1.x 有很大的区别
+- WebWork：一个比 Struts 设计更优秀的 MVC 框架，但不知道出于什么原因，从 2.0 开始把自己的代码全部塞给 Struts 2 了
+- Turbine：一个重度使用 Velocity，强调布局的 MVC 框架
+- 其他 100+ MVC 框架...（略）
+
+Spring 虽然都可以集成任何 Web 框架，但是，Spring 本身也开发了一个 MVC 框架，就叫 Spring MVC。这个 MVC 框架设计得足够优秀以至于我们已经不想再费劲去集成类似 Struts 这样的框架了。
+
+### 4.4.1 配置 Spring MVC
+
+和普通 Spring 配置一样，我们编写正常的 AppConfig 后，只需加上 @EnableWebMvc 注解，就「激活」了 Spring MVC
+
+```
+@Configuration
+@ComponentScan
+@EnableWebMvc // 启用 Spring MVC
+@EnableTransactionManagement
+@PropertySource("classpath:/jdbc.properties")
+public class AppConfig {
+    ...
+}
+```
+
+另外，需要创建几个用于 Spring MVC 的 Bean
+
+```
+@Bean
+WebMvcConfigurer createWebMvcConfigurer() {
+    return new WebMvcConfigurer() {
+        @Override
+        public void addResourceHandlers(ResourceHandlerRegistry registry) {
+            registry.addResourceHandler("/static/**").addResourceLocations("/static/");
+        }
+    };
+}
+```
+
+WebMvcConfigurer 并不是必须的，但我们在这里创建一个默认的 WebMvcConfigurer，只覆写 addResourceHandlers()，目的是让 Spring MVC 自动处理静态文件，并且映射路径为 `/static/**`。
+
+另一个必须要创建的 Bean 是 ViewResolver，因为 Spring MVC 允许集成任何模板引擎，使用哪个模板引擎，就实例化一个对应的 ViewResolver
+
+```
+@Bean
+ViewResolver createViewResolver(@Autowired ServletContext servletContext) {
+    PebbleEngine engine = new PebbleEngine.Builder().autoEscaping(true)
+            .cacheActive(false)
+            .loader(new ServletLoader(servletContext))
+            .extension(new SpringExtension())
+            .build();
+    PebbleViewResolver viewResolver = new PebbleViewResolver();
+    viewResolver.setPrefix("/WEB-INF/templates/");
+    viewResolver.setSuffix("");
+    viewResolver.setPebbleEngine(engine);
+    return viewResolver;
+}
+```
+
+ViewResolver 通过指定 prefix 和 suffix 来确定如何查找 View。上述配置使用 Pebble 引擎，指定模板文件存放在 `/WEB-INF/tempaltes/` 目录下。
+
+剩下的 Bean 都是普通的 @Component，但 Controller 必须标记为 @Controller，例如
+
+```
+// Controller 使用 @Controller 标记而不是 @Component
+@Controller
+public class UserController {
+    // 正常使用 @Autowired 注入
+    @Autowired
+    UserService userService;
+
+    // 处理一个 URL 映射
+    @GetMapping("/")
+    public ModelAndView index() {
+        ...
+    }
+    ...
+}
+```
+
+如果是普通的 Java 应用程序，我们通过 main() 方法可以很简单地创建一个 Spring 容器的实例
+
+```
+public static void main(String[] args) {
+    ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+}
+```
+
+但是问题来了，现在是 Web 应用程序，而 Web 应用程序总是由 Servlet 容器创建，那么，Spring 容器应该由谁创建？在什么时候创建？Spring 容器中的 Controller 又是如何通过 Servlet 调用的？
+
+在 Web 应用中启动 Spring 容器有很多种方法，可以通过 Listener 启动，也可以通过 Servlet 启动，可以使用 XML 配置，也可以使用注解配置。这里，我们只介绍一种最简单的启动 Spring 容器的方式。
+
+第一步，我们在 web.xml 中配置 Spring MVC 提供的 DispatcherServlet
+
+```
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+    <servlet>
+        <servlet-name>dispatcher</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextClass</param-name>
+            <param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
+        </init-param>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>com.itranswarp.learnjava.AppConfig</param-value>
+        </init-param>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>dispatcher</servlet-name>
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
+</web-app>
+```
+
+初始化参数 contextClass 指定使用注解配置的 AnnotationConfigWebApplicationContext，配置文件的位置参数 contextConfigLocation 指向 AppConfig 的完整类名，最后，把这个 Servlet 映射到 `/*`，即处理所有 URL。
+
+上述配置可以看作一个样板配置，有了这个配置，Servlet 容器会首先初始化 Spring MVC 的DispatcherServlet，在 DispatcherServlet 启动时，它根据配置 AppConfig 创建了一个类型是 WebApplicationContext 的 IoC 容器，完成所有 Bean 的初始化，并将容器绑到 ServletContext 上。
+
+因为 DispatcherServlet 持有 IoC 容器，能从 IoC 容器中获取所有 @Controller 的 Bean，因此，DispatcherServlet 接收到所有 HTTP 请求后，根据 Controller 方法配置的路径，就可以正确地把请求转发到指定方法，并根据返回的 ModelAndView 决定如何渲染页面。
+
+最后，我们在 AppConfig 中通过 main() 方法启动嵌入式 Tomcat
+
+```
+public static void main(String[] args) throws Exception {
+    Tomcat tomcat = new Tomcat();
+    tomcat.setPort(Integer.getInteger("port", 8080));
+    tomcat.getConnector();
+    Context ctx = tomcat.addWebapp("", new File("src/main/webapp").getAbsolutePath());
+    WebResourceRoot resources = new StandardRoot(ctx);
+    resources.addPreResources(
+            new DirResourceSet(resources, "/WEB-INF/classes", new File("target/classes").getAbsolutePath(), "/"));
+    ctx.setResources(resources);
+    tomcat.start();
+    tomcat.getServer().await();
+}
+```
+
+上述 Web 应用程序就是我们使用 Spring MVC 时的一个最小启动功能集。
+
+
+### 4.4.2 编写 Controller
+
+有了 Web 应用程序的最基本的结构，我们的重点就可以放在如何编写 Controller 上。Spring MVC 对 Controller 没有固定的要求，也不需要实现特定的接口。以 UserController 为例，编写 Controller 只需要遵循以下要点
+
+总是标记 @Controller 而不是 @Component
+
+```
+@Controller
+public class UserController {
+    ...
+}
+```
+
+一个方法对应一个 HTTP 请求路径，用 @GetMapping 或 @PostMapping 表示 GET 或 POST 请求
+
+```
+@PostMapping("/signin")
+public ModelAndView doSignin(
+        @RequestParam("email") String email,
+        @RequestParam("password") String password,
+        HttpSession session) {
+    ...
+}
+```
+
+需要接收的 HTTP 参数以 @RequestParam() 标注，可以设置默认值。如果方法参数需要传入 HttpServletRequest、HttpServletResponse 或者 HttpSession，直接添加这个类型的参数即可，Spring MVC 会自动按类型传入。
+
+返回的 ModelAndView 通常包含 View 的路径和一个 Map 作为 Model，但也可以没有 Model，例如
+
+```
+return new ModelAndView("signin.html"); // 仅 View，没有 Model
+```
+
+返回重定向时既可以写 `new ModelAndView("redirect:/signin")`，也可以直接返回 String
+
+```
+public String index() {
+    if (...) {
+        return "redirect:/signin";
+    } else {
+        return "redirect:/profile";
+    }
+}
+```
+
+如果在方法内部直接操作 HttpServletResponse 发送响应，返回 null 表示无需进一步处理
+
+```
+public ModelAndView download(HttpServletResponse response) {
+    byte[] data = ...
+    response.setContentType("application/octet-stream");
+    OutputStream output = response.getOutputStream();
+    output.write(data);
+    output.flush();
+    return null;
+}
+```
+
+对 URL 进行分组，每组对应一个 Controller 是一种很好的组织形式，并可以在 Controller 的 class 定义出添加 URL 前缀，例如
+
+```
+@Controller
+@RequestMapping("/user")
+public class UserController {
+    // 注意实际 URL 映射是 /user/profile
+    @GetMapping("/profile")
+    public ModelAndView profile() {
+        ...
+    }
+
+    // 注意实际 URL 映射是 /user/changePassword
+    @GetMapping("/changePassword")
+    public ModelAndView changePassword() {
+        ...
+    }
+}
+```
+
+实际方法的 URL 映射总是前缀 + 路径，这种形式还可以有效避免不小心导致的重复的 URL 映射。
+
+可见，Spring MVC 允许我们编写既简单又灵活的 Controller 实现。
+
+### 4.4.3 其它
+
+使用 Spring MVC 开发 Web 应用程序的主要工作就是编写 Controller 逻辑。在 Web 应用中，除了需要使用 MVC 给用户显示页面外，还有一类 API 接口，我们称之为 REST，通常输入输出都是 JSON，便于第三方调用或者使用页面 JavaScript 与之交互。直接在 Controller 中处理 JSON 是可以的，不过要配合一大堆注解写 REST 太麻烦了，因此，Spring 额外提供了一个 @RestController 注解，使用 @RestController 替代 @Controller 后，每个方法自动变成 API 接口方法。
+
+在 Servlet 中我们可以集成 Filter，Spring 中也是支持的，另外还支持 Interceptor 只对 Controller 进行拦截。
+
+另外，对于 CORS（Cross-Origin Resource Sharing：跨域资源共享）的处理、国际化、异步处理、使用 WebSocket 等等，这些 Spring 也有支持。
+
+上面的内容的细节就不一一介绍了，大家了解下 Spring MVC 能做些什么就行。
