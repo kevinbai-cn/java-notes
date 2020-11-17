@@ -1310,8 +1310,45 @@ public class UserController {
 
 使用 Spring MVC 开发 Web 应用程序的主要工作就是编写 Controller 逻辑。在 Web 应用中，除了需要使用 MVC 给用户显示页面外，还有一类 API 接口，我们称之为 REST，通常输入输出都是 JSON，便于第三方调用或者使用页面 JavaScript 与之交互。直接在 Controller 中处理 JSON 是可以的，不过要配合一大堆注解写 REST 太麻烦了，因此，Spring 额外提供了一个 @RestController 注解，使用 @RestController 替代 @Controller 后，每个方法自动变成 API 接口方法。
 
-在 Servlet 中我们可以集成 Filter，Spring 中也是支持的，另外还支持 Interceptor 只对 Controller 进行拦截。
+在 Servlet 中我们可以集成 Filter，Spring 也是支持的，另外还支持 Interceptor 只对 Controller 进行拦截。
 
 另外，对于 CORS（Cross-Origin Resource Sharing：跨域资源共享）的处理、国际化、异步处理、使用 WebSocket 等等，这些 Spring 也有支持。
 
 上面的内容的细节就不一一介绍了，大家了解下 Spring MVC 能做些什么就行。
+
+
+## 4.5 集成第三方组件
+
+Spring 框架不仅提供了标准的 IoC 容器、AOP 支持、数据库访问以及 Web MVC 等标准功能，还可以非常方便地集成许多常用的第三方组件。
+
+### 4.5.1 JavaMail
+
+Spring 中，可以集成 JavaMail 来收发电子邮件。
+
+### 4.5.2 JMS
+
+JMS，即 Java Message Service，是 JavaEE 的消息服务接口。JMS 主要有两个版本：1.1 和 2.0。2.0 和 1.1 相比，主要是简化了收发消息的代码。
+
+### 4.5.3 Scheduler
+
+在很多应用程序中，经常需要执行定时任务。
+
+Java 标准库本身就提供了定时执行任务的功能。在 Spring 中，使用定时任务更简单，不需要手写线程池相关代码，只需要加几个注解就行
+
+- 在 AppConfig 中标注 @EnableScheduling
+- 在定时任务的方法上标注 @Scheduled（@Scheduled 需传入适当的参数）
+- 在定时任务的方法所在的 class 标注 @Component
+
+上面任务的调度都是在每个 JVM 进程中的。如果在本机启动两个进程，或者在多台机器上启动应用，这些进程的定时任务都是独立运行的，互不影响。
+
+如果一些定时任务要以集群的方式运行，例如每天 23:00 执行检查任务，只需要集群中的一台运行即可，这个时候，可以考虑使用 Quartz。
+
+### 4.5.4 JMX
+
+JMX，即 Java Management Extensions，它是一个 Java 平台的管理和监控接口。为什么要搞 JMX 呢？因为在所有的应用程序中，对运行中的程序进行监控都是非常重要的，Java 应用程序也不例外。我们肯定希望知道 Java 应用程序当前的状态，例如，占用了多少内存，分配了多少内存，当前有多少活动线程，有多少休眠线程等等。如何获取这些信息呢？
+
+为了标准化管理和监控，Java 平台使用 JMX 作为管理和监控的标准接口，任何程序，只要按 JMX 规范访问这个接口，就可以获取所有管理与监控信息。
+
+实际上，常用的运维监控如 Zabbix、Nagios 等工具对 JVM 本身的监控都是通过 JMX 获取的信息。
+
+因为 JMX 是一个标准接口，所以它不但可以用于管理 JVM，还可以管理应用程序自身。
