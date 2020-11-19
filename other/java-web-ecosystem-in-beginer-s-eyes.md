@@ -1323,7 +1323,7 @@ Spring 框架不仅提供了标准的 IoC 容器、AOP 支持、数据库访问�
 
 ### 4.5.1 JavaMail
 
-Spring 中，可以集成 JavaMail 来收发电子邮件。
+在 Spring 中，可以集成 JavaMail 来收发电子邮件。
 
 ### 4.5.2 JMS
 
@@ -1352,3 +1352,324 @@ JMX，即 Java Management Extensions，它是一个 Java 平台的管理和监�
 实际上，常用的运维监控如 Zabbix、Nagios 等工具对 JVM 本身的监控都是通过 JMX 获取的信息。
 
 因为 JMX 是一个标准接口，所以它不但可以用于管理 JVM，还可以管理应用程序自身。
+
+# 5 Spring Boot
+
+Spring Framework 主要功能包括 IoC 容器、AOP 支持、MVC 开发以及强大的第三方集成功能等。
+
+那么，Spring Boot 又是什么？它和 Spring 是什么关系？
+
+Spring Boot 是一个基于 Spring 的套件，它帮我们预组装了 Spring 的一系列组件，以便以尽可能少的代码和配置来开发基于 Spring 的 Java 应用程序。
+
+以汽车为例，如果我们想组装一辆汽车，我们需要发动机、传动、轮胎、底盘、外壳、座椅、内饰等各种部件，然后把它们装配起来。Spring 就相当于提供了一系列这样的部件，但是要装好汽车上路，还需要我们自己动手。而 Spring Boot 则相当于已经帮我们预装好了一辆可以上路的汽车，如果有特殊的要求，例如把发动机从普通款换成涡轮增压款，可以通过修改配置或编写少量代码完成。
+
+因此，Spring Boot 和 Spring 的关系就是整车和零部件的关系，它们不是取代关系，试图跳过 Spring 直接学习 Spring Boot 是不可能的。
+
+Spring Boot 的目标就是提供一个开箱即用的应用程序架构，我们基于 Spring Boot 的预置结构继续开发，省时省力。
+
+## 5.1 目录结构
+
+Spring Boot 的目录结构类似这样
+
+```
+springboot-hello
+├── pom.xml
+├── src
+│   └── main
+│       ├── java
+│       └── resources
+│           ├── application.yml
+│           ├── logback-spring.xml
+│           ├── static
+│           └── templates
+└── target
+```
+
+其中，在 `src/main/resources` 目录下，注意到几个文件
+
+- `application.yml`
+
+这是 Spring Boot 默认的配置文件，它采用 YAML 格式而不是 `.properties` 格式，文件名必须是 `application.yml` 而不是其他名称。
+
+YAML 格式比 `key=value` 格式的 `.properties` 文件更易读。比较一下两者的写法
+
+使用 `.properties` 格式
+
+```
+# application.properties
+
+spring.application.name=${APP_NAME:unnamed}
+
+spring.datasource.url=jdbc:hsqldb:file:testdb
+spring.datasource.username=sa
+spring.datasource.password=
+spring.datasource.dirver-class-name=org.hsqldb.jdbc.JDBCDriver
+
+spring.datasource.hikari.auto-commit=false
+spring.datasource.hikari.connection-timeout=3000
+spring.datasource.hikari.validation-timeout=3000
+spring.datasource.hikari.max-lifetime=60000
+spring.datasource.hikari.maximum-pool-size=20
+spring.datasource.hikari.minimum-idle=1
+```
+
+使用 YAML 格式
+
+```
+# application.yml
+
+spring:
+  application:
+    name: ${APP_NAME:unnamed}
+  datasource:
+    url: jdbc:hsqldb:file:testdb
+    username: sa
+    password:
+    dirver-class-name: org.hsqldb.jdbc.JDBCDriver
+    hikari:
+      auto-commit: false
+      connection-timeout: 3000
+      validation-timeout: 3000
+      max-lifetime: 60000
+      maximum-pool-size: 20
+      minimum-idle: 1
+```
+
+可见，YAML 是一种层级格式，它和 `.properties` 很容易互相转换，它的优点是去掉了大量重复的前缀，并且更加易读。
+
+在配置文件中，我们可以使用环境变量对 key 进行配置
+
+```
+app:
+  db:
+    host: ${DB_HOST:localhost}
+    user: ${DB_USER:root}
+    password: ${DB_PASSWORD:password}
+```
+
+这种 `${DB_HOST:localhost}` 意思是，首先从环境变量查找 `DB_HOST`，如果环境变量定义了，那么使用环境变量的值，否则，使用默认值 localhost。
+
+这使得我们在开发和部署时更加方便，因为开发时无需设定任何环境变量，直接使用默认值即本地数据库，而实际线上运行的时候，只需要传入环境变量即可
+
+```
+$ DB_HOST=10.0.1.123 DB_USER=prod DB_PASSWORD=xxxx java -jar xxx.jar
+```
+
+- `logback-spring.xml`
+
+这是 Spring Boot 的 logback 配置文件名称（也可以使用 `logback.xml`）。
+
+另外，static 是静态文件目录，templates 是模板文件目录。
+
+
+## 5.2 源码目录结构
+
+我们来看源码目录结构
+
+```
+src/main/java
+└── com
+    └── itranswarp
+        └── learnjava
+            ├── Application.java
+            ├── entity
+            │   └── User.java
+            ├── service
+            │   └── UserService.java
+            └── web
+                └── UserController.java
+```
+
+在存放源码的 `src/main/java` 目录中，Spring Boot 对 Java 包的层级结构有一个要求。注意到我们的根 package 是 `com.itranswarp.learnjava`，下面还有 entity、service、web 等子 package。Spring Boot 要求 main() 方法所在的启动类必须放到根 package 下，命名不做要求，这里我们以 Application.java 命名，它的内容如下
+
+```
+@SpringBootApplication
+public class Application {
+    public static void main(String[] args) throws Exception {
+        SpringApplication.run(Application.class, args);
+    }
+}
+```
+
+启动 Spring Boot 应用程序只需要一行代码加上一个注解 `@SpringBootApplication`，该注解实际上又包含了
+
+- @SpringBootConfiguration
+    - @Configuration
+- @EnableAutoConfiguration
+    - @AutoConfigurationPackage
+- @ComponentScan
+
+这样一个注解就相当于启动了自动配置和自动扫描。
+
+我们再观察 `pom.xml`，它的内容如下
+
+```
+<project ...>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.3.0.RELEASE</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.itranswarp.learnjava</groupId>
+    <artifactId>springboot-hello</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <java.version>11</java.version>
+        <pebble.version>3.1.2</pebble.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+
+        <!-- 集成Pebble View -->
+        <dependency>
+            <groupId>io.pebbletemplates</groupId>
+            <artifactId>pebble-spring-boot-starter</artifactId>
+            <version>${pebble.version}</version>
+        </dependency>
+
+        <!-- JDBC驱动 -->
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+使用 Spring Boot 时，强烈推荐从 `spring-boot-starter-parent` 继承，因为这样就可以引入 Spring Boot 的预置配置。
+
+紧接着，我们引入了依赖 `spring-boot-starter-web` 和 `spring-boot-starter-jdbc`，它们分别引入了 Spring MVC 相关依赖和 Spring JDBC 相关依赖，无需指定版本号，因为引入的 `<parent>` 内已经指定了，只有我们自己引入的某些第三方 jar 包需要指定版本号。这里我们引入 `pebble-spring-boot-starter` 作为 View，以及 hsqldb 作为嵌入式数据库。hsqldb 已在 `spring-boot-starter-jdbc` 中预置了版本号 `2.5.0`，因此此处无需指定版本号。
+
+根据 `pebble-spring-boot-starter` 的文档，加入如下配置到 `application.yml`
+
+```
+pebble:
+  # 默认为".pebble"，改为"":
+  suffix:
+  # 开发阶段禁用模板缓存:
+  cache: false
+```
+
+对 Application 稍作改动，添加 WebMvcConfigurer 这个 Bean
+
+```
+@SpringBootApplication
+public class Application {
+    ...
+
+    @Bean
+    WebMvcConfigurer createWebMvcConfigurer(@Autowired HandlerInterceptor[] interceptors) {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addResourceHandlers(ResourceHandlerRegistry registry) {
+                // 映射路径`/static/`到classpath路径:
+                registry.addResourceHandler("/static/**")
+                        .addResourceLocations("classpath:/static/");
+            }
+        };
+    }
+}
+```
+
+现在就可以直接运行 Application。Spring Boot 自动启动了嵌入式 Tomcat，当看到 Started Application in xxx seconds 时，Spring Boot 应用启动成功。
+
+现在有个问题，数据源、声明式事务、JdbcTemplate 等在哪创建的？怎么就可以直接注入到自己编写的 UserService 中呢？
+
+这些自动创建的 Bean 就是 Spring Boot 的特色：AutoConfiguration。
+
+当我们引入 `spring-boot-starter-jdbc` 时，启动时会自动扫描所有的 `XxxAutoConfiguration`
+
+- DataSourceAutoConfiguration：自动创建一个 DataSource，其中配置项从 `application.yml` 的 `spring.datasource` 读取
+- DataSourceTransactionManagerAutoConfiguration：自动创建了一个基于 JDBC 的事务管理器
+- JdbcTemplateAutoConfiguration：自动创建了一个 JdbcTemplate
+
+因此，我们自动得到了一个 DataSource、一个 DataSourceTransactionManager 和一个 JdbcTemplate。
+
+类似的，当我们引入 `spring-boot-starter-web` 时，自动创建了
+
+- ServletWebServerFactoryAutoConfiguration：自动创建一个嵌入式 Web 服务器，默认是 Tomcat
+- DispatcherServletAutoConfiguration：自动创建一个 DispatcherServlet
+- HttpEncodingAutoConfiguration：自动创建一个 CharacterEncodingFilter
+- WebMvcAutoConfiguration：自动创建若干与 MVC 相关的 Bean
+- ...
+
+引入第三方 `pebble-spring-boot-starter` 时，自动创建了
+
+- PebbleAutoConfiguration：自动创建了一个 PebbleViewResolver
+
+Spring Boot 大量使用 XxxAutoConfiguration 来使得许多组件被自动化配置并创建，而这些创建过程又大量使用了 Spring 的 Conditional 功能。例如，我们观察 JdbcTemplateAutoConfiguration，它的代码如下
+
+```
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnClass({ DataSource.class, JdbcTemplate.class })
+@ConditionalOnSingleCandidate(DataSource.class)
+@AutoConfigureAfter(DataSourceAutoConfiguration.class)
+@EnableConfigurationProperties(JdbcProperties.class)
+@Import({ JdbcTemplateConfiguration.class, NamedParameterJdbcTemplateConfiguration.class })
+public class JdbcTemplateAutoConfiguration {
+}
+```
+
+当满足条件
+
+- @ConditionalOnClass：在 classpath 中能找到 DataSource 和 JdbcTemplate
+- `@ConditionalOnSingleCandidate(DataSource.class)`：在当前 Bean 的定义中能找到唯一的 DataSource
+
+该 JdbcTemplateAutoConfiguration 就会起作用。实际创建由导入的 JdbcTemplateConfiguration 完成
+
+```
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnMissingBean(JdbcOperations.class)
+class JdbcTemplateConfiguration {
+    @Bean
+    @Primary
+    JdbcTemplate jdbcTemplate(DataSource dataSource, JdbcProperties properties) {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        JdbcProperties.Template template = properties.getTemplate();
+        jdbcTemplate.setFetchSize(template.getFetchSize());
+        jdbcTemplate.setMaxRows(template.getMaxRows());
+        if (template.getQueryTimeout() != null) {
+            jdbcTemplate.setQueryTimeout((int) template.getQueryTimeout().getSeconds());
+        }
+        return jdbcTemplate;
+    }
+}
+```
+
+创建 JdbcTemplate 之前，要满足 `@ConditionalOnMissingBean(JdbcOperations.class)`，即不存在 JdbcOperations 的 Bean。
+
+如果我们自己创建了一个 JdbcTemplate，例如，在 Application 中自己写个方法
+
+```
+@SpringBootApplication
+public class Application {
+    ...
+    @Bean
+    JdbcTemplate createJdbcTemplate(@Autowired DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+}
+```
+
+那么根据条件 `@ConditionalOnMissingBean(JdbcOperations.class)`，Spring Boot 就不会再创建一个重复的 JdbcTemplate（因为 JdbcOperations 是 JdbcTemplate 的父类）。
+
+可见，Spring Boot 自动装配功能是通过自动扫描 + 条件装配实现的，这一套机制在默认情况下工作得很好，但是，如果我们要手动控制某个 Bean 的创建，就需要详细地了解 Spring Boot 自动创建的原理，很多时候还要跟踪 XxxAutoConfiguration，以便设定条件使得某个 Bean 不会被自动创建。
+
+小结下
+
+- Spring Boot 是一个基于 Spring 提供了开箱即用的一组套件，它可以让我们基于很少的配置和代码快速搭建出一个完整的应用程序
+- Spring Boot 有非常强大的 AutoConfiguration 功能，它是通过自动扫描 + 条件装配实现的
