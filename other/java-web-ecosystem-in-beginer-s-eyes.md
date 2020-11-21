@@ -1491,7 +1491,7 @@ public class Application {
 }
 ```
 
-启动 Spring Boot 应用程序只需要一行代码加上一个注解 `@SpringBootApplication`，该注解实际上又包含了
+启动 Spring Boot 应用程序只需要一行代码加上一个注解 @SpringBootApplication，该注解实际上又包含了
 
 - @SpringBootConfiguration
     - @Configuration
@@ -1673,3 +1673,24 @@ public class Application {
 
 - Spring Boot 是一个基于 Spring 提供了开箱即用的一组套件，它可以让我们基于很少的配置和代码快速搭建出一个完整的应用程序
 - Spring Boot 有非常强大的 AutoConfiguration 功能，它是通过自动扫描 + 条件装配实现的
+
+
+# 6 Spring Cloud
+
+Spring Cloud，顾名思义是跟云相关的，云程序实际上就是指分布式应用程序，所以 Spring Cloud 就是为了让分布式应用程序编写更方便，更容易而提供的一组基础设施，它的核心是 Spring 框架，利用 Spring Boot 的自动配置，力图实现最简化的分布式应用程序开发。
+
+# 7 小结
+
+本文泛泛的介绍了目前 Java Web 的技术体系，主要是 Servlet 和 Spring。文章内容大部分是从廖雪峰的《Java 教程》中摘录过来的，忽略了很多细节，目的是让一个刚接触 Java Web 的同学对当前的技术体系有个大致的认识，同时知道哪些是重点知识。
+
+有了这些了解后，你就可以结合自己的情况有选择性的进行学习了。比如，如果你工作中需要使用 Spring Boot 框架，那就了解下 Spring 的 IoC、AOP 等基础概念后直接进行 Spring Boot 的学习，在能完成基本的开发需求后，再慢慢熟悉底层的原理，如：怎么和 Spring Framework 结合的，后者是怎么设计的，Spring MVC 又是怎么和 Servlet 结合的，等等。也就是要知道自己学习的一个短期和稍微长期的目标。
+
+至于选择什么资料进行学习，本文参考的《Java 教程》挺适合初学者的，入门之后你可以尝试看下官方文档或者其它的书籍、源码啥的，这些就不在本文的内容范围内了，你可以根据自己的需要在搜索引擎上检索下。
+
+# 8 参考
+
+- https://www.liaoxuefeng.com/wiki/1252599548343744/1255945497738400
+- https://www.liaoxuefeng.com/wiki/1252599548343744/1266263217140032
+- 《Spring 实战（第 5 版）》，第 1 部分（Spring 基础）第 3 章（使用数据）
+- https://www.liaoxuefeng.com/wiki/1252599548343744/1266265175882464
+- https://www.liaoxuefeng.com/wiki/1252599548343744/1266263401691296
