@@ -37,9 +37,9 @@ Java 笔记
     - [数组列表](./corejava/paradigm/array-list.md)
     - [对象包装器](./corejava/paradigm/object-wrapper.md)
 
-## Spring Notes
+## Spring
 
-- [Spring Boot Hello World](./spring/spring-boot-hello-world.md)
+- [使用 Spring Initializr 创建 Spring Boot 项目](./spring/use-spring-initializr-to-create-spring-boot-project.md)
 
 ## 其它
 
