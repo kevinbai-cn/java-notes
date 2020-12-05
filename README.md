@@ -40,6 +40,7 @@ Java 笔记
 ## Spring
 
 - [使用 Spring Initializr 创建 Spring Boot 项目](./spring/use-spring-initializr-to-create-spring-boot-project.md)
+- [JDBC 单数据源配置](./spring/jdbc-single-data-source-configuration.md)
 
 ## 其它
 
