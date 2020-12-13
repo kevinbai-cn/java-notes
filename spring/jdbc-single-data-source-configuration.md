@@ -296,7 +296,7 @@ public class DatasourceDemo {
 - DataSourceTransactionManagerAutoConfiguration，配置 DataSourceTransactionManager
 - JdbcTemplateAutoConfiguration，配置 JdbcTemplate
 
-当然自动配置是条件执行的，比如 DataSourceAutoConfiguration 在探测到没有 DataSource Bean 的时候才会执行。这里不用过于深入的了解自动配置的原理，先简单了解下就行。
+当然，自动配置符合条件时才会执行，比如 DataSourceAutoConfiguration 在探测到没有 DataSource Bean 的时候才会执行。这里不用过于深入的了解自动配置的原理，先简单了解下就行。
 
 相关源码：
 

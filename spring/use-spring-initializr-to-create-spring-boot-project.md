@@ -171,6 +171,8 @@ $ java -jar target/hello-world-0.0.1-SNAPSHOT.jar
 
 本文介绍了如何使用 Spring Initializr 创建项目，然后编写并运行了一个 Hello World Web 应用，之后对项目结构进行了简单的说明，最后以 IntelliJ IDEA 为例说明了如何在 IDE 中使用 Spring Initializr。
 
+相关源码：[hello-world](https://github.com/kevinbai-cn/spring-demos/tree/master/hello-world)。
+
 # 6 参考
 
 - https://www.liaoxuefeng.com/wiki/1252599548343744/1309301146648610
