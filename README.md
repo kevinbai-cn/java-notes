@@ -42,6 +42,7 @@ Java 笔记
 - [使用 Spring Initializr 创建 Spring Boot 项目](./spring/use-spring-initializr-to-create-spring-boot-project.md)
 - [JDBC 单数据源配置](./spring/jdbc-single-data-source-configuration.md)
 - [JDBC 多数据源配置](./spring/jdbc-multi-data-source-configuration.md)
+- [在 Spring Boot 中配置 HikariCP 连接池](./spring/configure-hikaricp-in-spring-boot.md)
 
 ## 其它
 

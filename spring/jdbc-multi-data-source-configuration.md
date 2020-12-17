@@ -200,7 +200,7 @@ public PlatformTransactionManager barTxManager() {
 
 说明配置成功。
 
-你也可以查看 fooDataSourceProperties、fooDataSource、fooTxManager 之间的依赖关系来确认配置是否成功（bar 相关的同理），方式和上一节的类似，这里不赘述。
+你也可以使用 Actuator 查看 fooDataSourceProperties、fooDataSource、fooTxManager 之间的依赖关系来确认配置是否成功（bar 相关的同理），方式和上一节的类似，这里不赘述。
 
 # 3 小结
 
