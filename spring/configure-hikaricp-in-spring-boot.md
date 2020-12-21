@@ -80,6 +80,6 @@ public class HikaricpDemoApplication implements CommandLineRunner {
 
 # 5 小结
 
-Spring Boot 中配置 HikariCP 比较简单，直接加入 JDBC 和连接池相关配置就行。
+Spring Boot 中配置 HikariCP 比较简单，直接在配置文件中加入 JDBC 和连接池相关配置就行。
 
 相关源码：[hikaricp-demo](https://github.com/kevinbai-cn/spring-demos/tree/master/hikaricp-demo)。
