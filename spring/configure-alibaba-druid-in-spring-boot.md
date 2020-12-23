@@ -106,6 +106,8 @@ spring.datasource.druid.test-while-idle=true
 
 在最开始启动应用的时候，会有 1 条 ERROR 日志，这是由于 Druid 默认会启用 `test-while-idle`，而当时没有设置 `validation-query` 造成的。
 
+需要注意的，如果开启 `test-on-borrow`、`test-on-return` 会产生额外的性能开销，毕竟每次取放连接都要做一次 SQL 测试，一般情况下建议只开启 `test-while-idle`。
+
 ## 5.2 密码加密
 
 Druid 支持直接配置加密后的密码信息。
