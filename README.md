@@ -44,6 +44,7 @@ Java 笔记
 - [JDBC 多数据源配置](./spring/jdbc-multi-data-source-configuration.md)
 - [在 Spring Boot 中配置 HikariCP 连接池](./spring/configure-hikaricp-in-spring-boot.md)
 - [在 Spring Boot 中配置 Alibaba Druid 连接池](./spring/configure-alibaba-druid-in-spring-boot.md)
+- [通过 Spring JDBC 访问数据库](./spring/use-spring-jdbc-to-access-database.md)
 
 ## 其它
 
