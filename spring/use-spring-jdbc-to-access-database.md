@@ -257,7 +257,7 @@ namedParameterJdbcTemplate.batchUpdate("INSERT INTO foo (bar) VALUES (:bar)",
 另外说明下，类 `com.kevinbai.simplejdbcdemo.FooDao` 使用了注解 `@Repository`，它有 2 个层面的作用
 
 - 类似注解 `@Component`，可以被 Spring Boot 自动扫描到，并在需要时实例化为 Bean 放入到 Spring 容器中
-- 代表该类担任着数据访问层的角色，其中一个好处是，如果类中用了类似 Hibernate 之类的持久化框架，其抛出的数据库异常都会被都会被转为 Spring 中的异常类 DataAccessExeption 的子类，这里暂不细说，有个了解就行
+- 代表该类担任着数据访问层的角色，具体有什么作用，这里暂不细说，知道有这个意思就行
 
 # 8 参考
 
