@@ -37,6 +37,8 @@ Java 笔记
     - [数组列表](./corejava/paradigm/array-list.md)
     - [对象包装器](./corejava/paradigm/object-wrapper.md)
 
+[百度脑图](http://naotu.baidu.com/file/43cdf4ffcfa307f050599ceb9bbf3126?token=94631f0fd5806cc0)
+
 ## Spring
 
 - [使用 Spring Initializr 创建 Spring Boot 项目](./spring/use-spring-initializr-to-create-spring-boot-project.md)
